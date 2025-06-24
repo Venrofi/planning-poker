@@ -12,11 +12,4 @@ import { Participant } from '../../models/participant.model';
 })
 export class PokerTableComponent {
   participants = input.required<Participant[]>();
-
-  getPosition(id: string): number {
-    const index = this.participants().findIndex(p => p.id === id);
-    const totalParticipants = this.participants().length;
-    if (totalParticipants <= 1) return 0;
-    return (360 / totalParticipants) * index;
-  }
 }
