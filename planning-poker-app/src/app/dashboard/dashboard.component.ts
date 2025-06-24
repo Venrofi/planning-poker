@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PokerTableComponent } from '../components/poker-table/poker-table.component';
 import { CardComponent } from '../components/card/card.component';
 import { Participant } from '../models/participant.model';
@@ -8,7 +9,7 @@ import { Card } from '../models/cards.model';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, PokerTableComponent, CardComponent],
+  imports: [CommonModule, FormsModule, PokerTableComponent, CardComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })

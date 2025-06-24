@@ -49,23 +49,30 @@
   position: relative;
   z-index: 1;
 
-  h1 {
+  .title-container {
     font-size: 34px;
     font-weight: 700;
     color: #fff;
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(25px);
-    padding: 18px 30px;
+    padding: 10px 20px;
     border-radius: 20px;
     display: inline-block;
     box-shadow:
       0 10px 25px rgba(0, 0, 0, 0.1),
       inset 0 1px 1px rgba(255, 255, 255, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.4);
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
+    min-width: 350px;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover, &:focus-within {
+      transform: translateY(-2px);
+      box-shadow:
+        0 15px 30px rgba(0, 0, 0, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
 
     &::before {
       content: '';
@@ -81,6 +88,32 @@
         transparent
       );
       animation: shine 3s infinite;
+      pointer-events: none;
+    }
+
+    .title-input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 30px;
+      font-weight: 700;
+      width: 100%;
+      padding: 8px 10px;
+      outline: none;
+      font-family: inherit;
+      text-align: center;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      caret-color: rgba(255, 255, 255, 0.8);
+      transition: all 0.2s;
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) inset;
+      }
     }
   }
 }

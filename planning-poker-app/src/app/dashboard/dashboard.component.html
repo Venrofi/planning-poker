@@ -1,6 +1,14 @@
 <div class="dashboard">
   <header class="header">
-    <h1>{{ roomTitle() }}</h1>
+    <div class="title-container">
+      <input
+        class="title-input"
+        type="text"
+        [ngModel]="roomTitle()"
+        (ngModelChange)="roomTitle.set($event)"
+        placeholder="Sprint Planning Poker"
+      />
+    </div>
   </header>
 
   <main>
