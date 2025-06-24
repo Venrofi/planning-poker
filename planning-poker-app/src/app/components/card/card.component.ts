@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Card } from '../../models/cards.model';
 
 @Component({
   selector: 'app-card',
@@ -9,7 +10,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./card.component.scss']
 })
 export class CardComponent {
-  value = input<string>('?');
+  value = input<Card>('?');
   selected = input<boolean>(false);
   revealed = input<boolean>(false);
 }
