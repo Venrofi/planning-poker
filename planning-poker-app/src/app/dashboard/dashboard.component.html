@@ -1,0 +1,29 @@
+<div class="dashboard">
+  <header class="header">
+    <h1>{{ roomTitle() }}</h1>
+  </header>
+
+  <main>
+    <app-poker-table [participants]="participants()"></app-poker-table>
+  </main>
+
+  <section class="card-selection">
+    <h2>Your Cards</h2>
+    <div class="cards">
+      @for (card of cards(); track card) {
+        <app-card
+          [value]="card"
+          [selected]="selectedCard() === card"
+          (click)="selectCard(card)"
+        ></app-card>
+      }
+    </div>
+  </section>
+
+  <section class="controls">
+    <button class="reveal-btn" (click)="toggleReveal()">
+      {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
+    </button>
+    <button class="reset-btn" (click)="resetCards()">Reset</button>
+  </section>
+</div>
