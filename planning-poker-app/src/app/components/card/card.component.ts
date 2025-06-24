@@ -5,85 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-card',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="card" [class.selected]="selected()" [class.revealed]="revealed()">
-      <div class="card-inner">
-        <div class="card-front">
-          <span class="card-value">{{ value() }}</span>
-        </div>
-        <div class="card-back">
-          <div class="card-pattern"></div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: `
-    .card {
-      width: 80px;
-      height: 120px;
-      perspective: 1000px;
-      cursor: pointer;
-      transition: transform 0.3s;
-    }
-
-    .card:hover {
-      transform: translateY(-10px);
-    }
-
-    .card-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .revealed .card-inner {
-      transform: rotateY(180deg);
-    }
-
-    .card-front, .card-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .card-front {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      transform: rotateY(180deg);
-    }
-
-    .card-back {
-      background: linear-gradient(135deg, #6e8efb, #a777e3);
-    }
-
-    .card-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .card-pattern {
-      width: 60%;
-      height: 60%;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px);
-      background-size: 10px 10px;
-    }
-
-    .selected {
-      transform: translateY(-15px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-  `
+  templateUrl: './card.component.html',
+  styleUrls: ['./card.component.scss']
 })
 export class CardComponent {
   value = input<string>('?');
