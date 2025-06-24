@@ -1,10 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Reset default styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, dl, figure {
+  margin: 0;
+  padding: 0;
 }
 
 html, body {
@@ -14,38 +18,47 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   font-family: 'Inter', sans-serif, system-ui;
+  background: linear-gradient(135deg, #4338ca, #6d28d9, #a855f7);
+  color: #fff;
+  background-size: 400% 400%;
+  animation: gradientBackground 15s ease infinite;
 }
 
-app-root {
-  display: block;
-  width: 100%;
+
+@keyframes gradientBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
   height: 100%;
-}
-
-/* Remove default spacing on common elements */
-h1, h2, h3, h4, h5, h6, p, ul, ol, dl, figure {
-  margin: 0;
-  padding: 0;
-}
-
-button {
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  color: #333;
-  background-color: #f5f7fa;
-  overflow-x: hidden;
-}
-
-button {
-  font-family: 'Inter', sans-serif;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
 }
 
 .glass-effect {
@@ -55,4 +68,13 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
 }
