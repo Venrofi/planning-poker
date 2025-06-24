@@ -129,7 +129,10 @@ main {
 }
 
 .card-selection {
-  margin-top: 40px;
+  width: fit-content;
+  max-width: 75%;
+  margin: 0 auto;
+  margin-top: 24px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(20px);
   padding: 25px;
@@ -183,8 +186,7 @@ main {
   display: flex;
   justify-content: center;
   gap: 25px;
-  margin-top: 40px;
-  padding-bottom: 30px;
+  margin-block: 24px;
   position: relative;
   z-index: 2;
 }
