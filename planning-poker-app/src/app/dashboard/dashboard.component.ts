@@ -17,16 +17,16 @@ export class DashboardComponent {
   roomTitle = signal<string>('Sprint Planning Poker');
 
   participants = signal<Participant[]>([
-    { id: '1', name: 'John', selectedCard: 'XS', isRevealed: false },
+    { id: '1', name: 'John', selectedCard: undefined, isRevealed: false },
     { id: '2', name: 'Sarah', selectedCard: 'S', isRevealed: false },
     { id: '3', name: 'Mike', selectedCard: 'S', isRevealed: false },
-    { id: '4', name: 'Emma', selectedCard: undefined, isRevealed: false },
+    { id: '4', name: 'Emma', selectedCard: 'XS', isRevealed: false },
     { id: '5', name: 'David', selectedCard: '?', isRevealed: false },
-    { id: '6', name: 'Alice', selectedCard: undefined, isRevealed: false },
-    { id: '7', name: 'Bob', selectedCard: undefined, isRevealed: false },
-    { id: '8', name: 'Charlie', selectedCard: undefined, isRevealed: false },
-    { id: '9', name: 'Diana', selectedCard: undefined, isRevealed: false },
-    { id: '10', name: 'Ethan', selectedCard: undefined, isRevealed: false }
+    { id: '6', name: 'Alice', selectedCard: 'S', isRevealed: false },
+    { id: '7', name: 'Bob', selectedCard: 'M', isRevealed: false },
+    { id: '8', name: 'Charlie', selectedCard: 'XS', isRevealed: false },
+    { id: '9', name: 'Diana', selectedCard: 'M', isRevealed: false },
+    { id: '10', name: 'Ethan', selectedCard: 'XXS', isRevealed: false }
   ]);
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
