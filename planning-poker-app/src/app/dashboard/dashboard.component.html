@@ -10,7 +10,6 @@
       />
     </div>
   </header>
-
   <main>
     <app-poker-table
       [participants]="participants()"
@@ -19,16 +18,18 @@
   </main>
 
   <section class="card-selection">
-    <h2>Pick a Card!</h2>
-    <div class="cards">
-      @for (card of cards(); track card) {
-        <app-card
-          [value]="card"
-          [selected]="selectedCard() === card"
-          [revealed]="true"
-          (click)="selectCard(card)">
-        </app-card>
-      }
+    <h2 class="card-selection-header">Pick a Card!</h2>
+    <div class="card-selection-content">
+      <div class="cards">
+        @for (card of cards(); track card) {
+          <app-card
+            [value]="card"
+            [selected]="selectedCard() === card"
+            [revealed]="true"
+            (click)="selectCard(card)">
+          </app-card>
+        }
+      </div>
     </div>
   </section>
 </div>
