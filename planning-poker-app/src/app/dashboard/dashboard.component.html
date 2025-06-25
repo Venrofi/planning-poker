@@ -13,20 +13,29 @@
   <main>
     <app-poker-table
       [participants]="participants()"
-      (participantsChange)="updateParticipants($event)">
+      (participantsChange)="updateParticipants($event)"
+      (isRevealInProgressChange)="isRevealInProgress.set($event)">
     </app-poker-table>
   </main>
-
   <section class="card-selection">
-    <h2 class="card-selection-header">Pick a Card!</h2>
+    <h2 class="card-selection-header">
+      @if (areCardsRevealed() || isRevealInProgress()) {
+        Cards Locked
+      } @else {
+        Pick a Card!
+      }
+    </h2>
     <div class="card-selection-content">
-      <div class="cards">
+      <div class="cards"
+        [class.disabled]="areCardsRevealed() || isRevealInProgress()"
+        [attr.aria-disabled]="areCardsRevealed() || isRevealInProgress()">
         @for (card of cards(); track card) {
           <app-card
             [value]="card"
             [selected]="selectedCard() === card"
             [revealed]="true"
-            (click)="selectCard(card)">
+            [disabled]="areCardsRevealed() || isRevealInProgress()"
+            (click)="handleCardClick(card)">
           </app-card>
         }
       </div>

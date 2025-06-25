@@ -16,6 +16,9 @@ import { Card } from '../models/cards.model';
 export class DashboardComponent {
   roomTitle = signal<string>('Sprint Planning Poker');
 
+  areCardsRevealed = signal<boolean>(false);
+  isRevealInProgress = signal<boolean>(false);
+
   participants = signal<Participant[]>([
     { id: '1', name: 'John', selectedCard: undefined, isRevealed: false },
     { id: '2', name: 'Sarah', selectedCard: 'S', isRevealed: false },
@@ -28,20 +31,26 @@ export class DashboardComponent {
     { id: '9', name: 'Diana', selectedCard: 'M', isRevealed: false },
     { id: '10', name: 'Ethan', selectedCard: 'XXS', isRevealed: false }
   ]);
+
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
 
   updateParticipants(updatedParticipants: Participant[]): void {
-    // Check if we're resetting cards
     const isReset = updatedParticipants.every(p => !p.selectedCard && !p.isRevealed);
     if (isReset) {
       this.selectedCard.set(undefined);
+      this.areCardsRevealed.set(false);
+      this.isRevealInProgress.set(false);
+    } else {
+      const areRevealed = updatedParticipants.some(p => p.isRevealed);
+      this.areCardsRevealed.set(areRevealed);
     }
 
     this.participants.set(updatedParticipants);
   }
-
   selectCard(card: Card): void {
+    if (this.areCardsRevealed() || this.isRevealInProgress()) return;
+
     this.selectedCard.set(card);
 
     // Update current user's card (assuming user ID 1 for simplicity)
@@ -50,5 +59,10 @@ export class DashboardComponent {
         p.id === '1' ? { ...p, selectedCard: card } : p
       )
     );
+  }
+  handleCardClick(card: Card): void {
+    if (this.areCardsRevealed() || this.isRevealInProgress()) return;
+
+    this.selectCard(card);
   }
 }

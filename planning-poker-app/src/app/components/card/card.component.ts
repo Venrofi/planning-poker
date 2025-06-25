@@ -13,4 +13,5 @@ export class CardComponent {
   value = input<Card>('?');
   selected = input<boolean>(false);
   revealed = input<boolean>(false);
+  disabled = input<boolean>(false);
 }

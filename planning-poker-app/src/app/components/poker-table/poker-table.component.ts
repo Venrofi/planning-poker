@@ -20,6 +20,7 @@ export class PokerTableComponent {
   countdownValue = signal<string>(this.COUNTDOWN_SECONDS.toString());
 
   participantsChange = output<Participant[]>();
+  isRevealInProgressChange = output<boolean>();
 
   startCountdown(): void {
     if (this.areCardsRevealed()) {
@@ -28,9 +29,9 @@ export class PokerTableComponent {
     }
 
     this.isCountingDown.set(true);
+    this.isRevealInProgressChange.emit(true);
     this.asyncCountdown();
   }
-
   private async asyncCountdown(): Promise<void> {
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -43,6 +44,7 @@ export class PokerTableComponent {
     await delay(500);
 
     this.isCountingDown.set(false);
+    this.isRevealInProgressChange.emit(false);
     this.toggleReveal();
   }
 
@@ -57,6 +59,7 @@ export class PokerTableComponent {
   resetCards(): void {
     this.areCardsRevealed.set(false);
     this.isCountingDown.set(false);
+    this.isRevealInProgressChange.emit(false);
 
     const resetParticipants = this.participants().map(p => ({
       ...p,
