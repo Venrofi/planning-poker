@@ -10,11 +10,9 @@ $transition-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   width: $card-width;
   height: $card-height;
   perspective: 1000px;
-  cursor: pointer;
   transition: transform 0.4s ease, filter 0.4s ease;
   transform-origin: center bottom;
 
-  &:hover { transform: translateY(-10px) scale(1.03); }
   &.selected {
     transform: translateY(-15px) scale(1.05);
     filter: drop-shadow(0 15px 15px rgba(0, 0, 0, 0.15));
