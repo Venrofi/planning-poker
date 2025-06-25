@@ -21,7 +21,12 @@ export class DashboardComponent {
     { id: '2', name: 'Sarah', selectedCard: 'S', isRevealed: false },
     { id: '3', name: 'Mike', selectedCard: 'S', isRevealed: false },
     { id: '4', name: 'Emma', selectedCard: undefined, isRevealed: false },
-    { id: '5', name: 'David', selectedCard: '?', isRevealed: false }
+    { id: '5', name: 'David', selectedCard: '?', isRevealed: false },
+    { id: '6', name: 'Alice', selectedCard: undefined, isRevealed: false },
+    { id: '7', name: 'Bob', selectedCard: undefined, isRevealed: false },
+    { id: '8', name: 'Charlie', selectedCard: undefined, isRevealed: false },
+    { id: '9', name: 'Diana', selectedCard: undefined, isRevealed: false },
+    { id: '10', name: 'Ethan', selectedCard: undefined, isRevealed: false }
   ]);
 
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
