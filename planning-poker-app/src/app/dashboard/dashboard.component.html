@@ -25,6 +25,7 @@
         <app-card
           [value]="card"
           [selected]="selectedCard() === card"
+          [revealed]="true"
           (click)="selectCard(card)">
         </app-card>
       }
