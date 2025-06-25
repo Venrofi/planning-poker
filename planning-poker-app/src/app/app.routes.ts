@@ -3,5 +3,6 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: DashboardComponent },
+  { path: 'room/:id', component: DashboardComponent },
   { path: '**', redirectTo: '' }
 ];

@@ -25,3 +25,28 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Firebase Configuration
+
+This application uses Firebase for real-time communication. To set up your own Firebase instance:
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Register your web application in the Firebase project
+3. Enable Realtime Database in the Firebase console
+4. Set up Realtime Database rules (for basic testing, you can use):
+
+   ```
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+   ```
+
+   Note: These rules allow anyone to read/write to your database. For production, use more restrictive rules.
+
+5. Copy `src/environments/environment.template.ts` to `src/environments/environment.ts`
+6. Update the Firebase configuration in `environment.ts` with your own Firebase project details
+
+Note: The `environment.ts` file is excluded from version control to protect your Firebase credentials. Never commit API keys or credentials to public repositories.

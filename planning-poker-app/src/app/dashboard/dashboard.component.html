@@ -1,6 +1,5 @@
 <div class="dashboard">
   <header class="header">
-    <button class="reload-button" (click)="participants.set(initParticipants())">🌀</button>
     <div class="title-container">
       <input
         class="title-input"
@@ -9,6 +8,10 @@
         (ngModelChange)="roomTitle.set($event)"
         placeholder="Sprint Planning Poker"
       />
+      <div class="room-info">
+        <span class="room-id">Room ID: {{ roomId() }}</span>
+        <button class="copy-button" (click)="copyRoomLink()">📋 Copy Link</button>
+      </div>
     </div>
   </header>
   <main>
