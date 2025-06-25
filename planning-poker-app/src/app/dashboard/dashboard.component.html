@@ -19,11 +19,7 @@
   </main>
   <section class="card-selection">
     <h2 class="card-selection-header">
-      @if (areCardsRevealed() || isRevealInProgress()) {
-        Cards Locked
-      } @else {
-        Pick a Card!
-      }
+      {{ areCardsRevealed() || isRevealInProgress() ? 'Cards Locked' : 'Pick a Card!' }}
     </h2>
     <div class="card-selection-content">
       <div class="cards"

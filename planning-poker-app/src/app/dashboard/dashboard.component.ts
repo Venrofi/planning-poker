@@ -48,6 +48,7 @@ export class DashboardComponent {
 
     this.participants.set(updatedParticipants);
   }
+
   selectCard(card: Card): void {
     if (this.areCardsRevealed() || this.isRevealInProgress()) return;
 
@@ -60,6 +61,7 @@ export class DashboardComponent {
       )
     );
   }
+
   handleCardClick(card: Card): void {
     if (this.areCardsRevealed() || this.isRevealInProgress()) return;
 
