@@ -19,18 +19,7 @@ export class DashboardComponent {
   areCardsRevealed = signal<boolean>(false);
   isRevealInProgress = signal<boolean>(false);
 
-  participants = signal<Participant[]>([
-    { id: '1', name: 'John', selectedCard: undefined, isRevealed: false },
-    { id: '2', name: 'Sarah', selectedCard: 'S', isRevealed: false },
-    { id: '3', name: 'Mike', selectedCard: 'S', isRevealed: false },
-    { id: '4', name: 'Emma', selectedCard: 'XS', isRevealed: false },
-    { id: '5', name: 'David', selectedCard: '?', isRevealed: false },
-    { id: '6', name: 'Alice', selectedCard: 'S', isRevealed: false },
-    { id: '7', name: 'Bob', selectedCard: 'M', isRevealed: false },
-    { id: '8', name: 'Charlie', selectedCard: 'XS', isRevealed: false },
-    { id: '9', name: 'Diana', selectedCard: 'M', isRevealed: false },
-    { id: '10', name: 'Ethan', selectedCard: 'XXS', isRevealed: false }
-  ]);
+  participants = signal<Participant[]>(this.initParticipants());
 
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
@@ -66,5 +55,24 @@ export class DashboardComponent {
     if (this.areCardsRevealed() || this.isRevealInProgress()) return;
 
     this.selectCard(card);
+  }
+
+  initParticipants(): Participant[] {
+    const participants: Participant[] = [{ id: '1', name: 'Radek', selectedCard: undefined, isRevealed: false }];
+    const names = ['John', 'Sarah', 'Mike', 'Emma', 'David', 'Alice', 'Bob', 'Charlie', 'Diana'];
+    const cards: Card[] = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+    names.forEach((name, index) => {
+      const randomIndex = Math.floor(Math.random() * cards.length);
+
+      participants.push({
+        id: (index + 2).toString(),
+        name,
+        selectedCard: cards[randomIndex] || '?',
+        isRevealed: false
+      });
+    });
+
+    return participants;
   }
 }
