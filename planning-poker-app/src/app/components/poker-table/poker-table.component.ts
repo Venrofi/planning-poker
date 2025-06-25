@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ParticipantComponent } from '../participant/participant.component';
 import { Participant } from '../../models/participant.model';
@@ -18,6 +18,7 @@ export class PokerTableComponent {
   areCardsRevealed = signal<boolean>(false);
   isCountingDown = signal<boolean>(false);
   countdownValue = signal<string>(this.COUNTDOWN_SECONDS.toString());
+  winningCard = computed(() => this.calculateWinningCard());
 
   participantsChange = output<Participant[]>();
   isRevealInProgressChange = output<boolean>();
@@ -67,5 +68,43 @@ export class PokerTableComponent {
       isRevealed: false
     }));
     this.participantsChange.emit(resetParticipants);
+  }
+
+  private calculateWinningCard(): string | undefined {
+    if (!this.areCardsRevealed()) {
+      return undefined;
+    }
+
+    const participants = this.participants();
+
+    const cardCounts = participants
+      .filter(p => p.selectedCard !== undefined)
+      .reduce((counts, participant) => {
+        const card = participant.selectedCard!;
+        counts[card] = (counts[card] || 0) + 1;
+        return counts;
+      }, {} as Record<string, number>);
+
+    if (Object.keys(cardCounts).length === 0) {
+      return undefined;
+    }
+
+    let maxCount = 0;
+    let winners: string[] = [];
+
+    for (const [card, count] of Object.entries(cardCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        winners = [card];
+      } else if (count === maxCount) {
+        winners.push(card);
+      }
+    }
+
+    if (winners.length > 1) {
+      return `${winners.join(' / ')} (${maxCount} votes each)`;
+    } else {
+      return `${winners[0]} (${maxCount} vote${maxCount !== 1 ? 's' : ''})`;
+    }
   }
 }

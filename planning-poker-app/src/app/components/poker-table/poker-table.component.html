@@ -1,11 +1,20 @@
 <div class="table-container">
   <div class="poker-table">
-    <div class="table-controls">
+    <div class="table-content">
       @if (!isCountingDown()) {
-        <button class="reveal-btn" (click)="startCountdown()">
-          {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
-        </button>
-        <button class="reset-btn" (click)="resetCards()">Reset</button>
+        @if (areCardsRevealed() && winningCard()) {
+          <div class="voting-results">
+            <span class="winner-label">Winner is:</span>
+            <span class="winner-value">{{ winningCard() }}</span>
+          </div>
+        }
+
+        <div class="voting-controls">
+          <button class="reveal-btn" (click)="startCountdown()">
+            {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
+          </button>
+          <button class="reset-btn" (click)="resetCards()">Reset</button>
+        </div>
       } @else {
         <div class="countdown">{{ countdownValue() }}</div>
       }
