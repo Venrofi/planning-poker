@@ -12,7 +12,10 @@
   </header>
 
   <main>
-    <app-poker-table [participants]="participants()"></app-poker-table>
+    <app-poker-table
+      [participants]="participants()"
+      (participantsChange)="updateParticipants($event)">
+    </app-poker-table>
   </main>
 
   <section class="card-selection">
@@ -26,12 +29,5 @@
         ></app-card>
       }
     </div>
-  </section>
-
-  <section class="controls">
-    <button class="reveal-btn" (click)="toggleReveal()">
-      {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
-    </button>
-    <button class="reset-btn" (click)="resetCards()">Reset</button>
   </section>
 </div>

@@ -1,5 +1,12 @@
 <div class="table-container">
-  <div class="poker-table"></div>
+  <div class="poker-table">
+    <div class="table-controls">
+      <button class="reveal-btn" (click)="toggleReveal()">
+        {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
+      </button>
+      <button class="reset-btn" (click)="resetCards()">Reset</button>
+    </div>
+  </div>
   @for (participant of participants(); track participant.id) {
     <app-participant [ngClass]="'participant-position-' + participant.id" [participant]="participant"></app-participant>
   }

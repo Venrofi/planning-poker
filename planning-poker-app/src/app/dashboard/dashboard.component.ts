@@ -28,10 +28,18 @@ export class DashboardComponent {
     { id: '9', name: 'Diana', selectedCard: undefined, isRevealed: false },
     { id: '10', name: 'Ethan', selectedCard: undefined, isRevealed: false }
   ]);
-
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
-  areCardsRevealed = signal<boolean>(false);
+
+  updateParticipants(updatedParticipants: Participant[]): void {
+    // Check if we're resetting cards
+    const isReset = updatedParticipants.every(p => !p.selectedCard && !p.isRevealed);
+    if (isReset) {
+      this.selectedCard.set(undefined);
+    }
+
+    this.participants.set(updatedParticipants);
+  }
 
   selectCard(card: Card): void {
     this.selectedCard.set(card);
@@ -41,26 +49,6 @@ export class DashboardComponent {
       participants.map(p =>
         p.id === '1' ? { ...p, selectedCard: card } : p
       )
-    );
-  }
-
-  toggleReveal(): void {
-    const newRevealState = !this.areCardsRevealed();
-    this.areCardsRevealed.set(newRevealState);
-
-    // Update all participants' reveal state
-    this.participants.update(participants =>
-      participants.map(p => ({ ...p, isRevealed: newRevealState }))
-    );
-  }
-
-  resetCards(): void {
-    this.selectedCard.set(undefined);
-    this.areCardsRevealed.set(false);
-
-    // Reset all participants
-    this.participants.update(participants =>
-      participants.map(p => ({ ...p, selectedCard: undefined, isRevealed: false }))
     );
   }
 }
