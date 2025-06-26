@@ -1,32 +1,12 @@
 <div class="dashboard">
-  <header class="header">
-    <button class="create-room-button" (click)="createNewRoom()">
-      ✨ Create New Room
-    </button>
-    <div class="title-container">
-      <input
-        class="title-input"
-        type="text"
-        [ngModel]="roomTitle()"
-        (ngModelChange)="updateRoomTitle($event)"
-        placeholder="Sprint Planning Poker"
-      />
-      <span class="participant-count">{{ participants().length }} participant(s)</span>
-      <div class="room-info">
-        <span class="room-id">Room ID: {{ roomId() }}</span>
-        <div class="copy-button-container">
-          <button class="copy-button" (click)="copyRoomLink()">📋 Copy Link</button>
-          @if (showCopyTooltip) {
-            <div class="copy-tooltip">Copied!</div>
-          }
-        </div>
-      </div>
-      <div class="user-info">
-        <span class="user-name">Your name: {{ userName() }}</span>
-        <button class="user-button" (click)="promptForUserName()">✏️ Change</button>
-      </div>
-    </div>
-  </header>
+  <app-header
+    [roomTitle]="roomTitle()"
+    [participants]="participants()"
+    [roomId]="roomId()"
+    [userName]="userName()"
+    (roomTitleChange)="updateRoomTitle($event)"
+    (promptForUserName)="promptForUserName()">
+  </app-header>
   <main>
     <app-poker-table
       [participants]="participants()"
@@ -72,7 +52,7 @@
   @if (showUsernamePrompt) {
     <div class="alert-message">
       <div class="alert-content">
-        <p>Enter your name:</p>
+        <p>Enter the game!</p>
         <div class="input-container">
           <input
             type="text"

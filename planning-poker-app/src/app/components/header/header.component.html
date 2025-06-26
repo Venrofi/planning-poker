@@ -1,0 +1,28 @@
+<header class="header">
+  <button class="create-room-button" (click)="createNewRoom()">
+    ✨ Create New Room
+  </button>
+  <div class="title-container">
+    <input
+      class="title-input"
+      type="text"
+      [ngModel]="roomTitle"
+      (ngModelChange)="onRoomTitleChange($event)"
+      placeholder="Sprint Planning Poker"
+    />
+    <span class="participant-count">{{ participants.length }} participant(s)</span>
+    <div class="room-info">
+      <span class="room-id">Room ID: {{ roomId }}</span>
+      <div class="copy-button-container">
+        <button class="copy-button" (click)="copyRoomLink()">📋 Copy Link</button>
+        @if (showCopyTooltip) {
+          <div class="copy-tooltip">Copied!</div>
+        }
+      </div>
+    </div>
+    <div class="user-info">
+      <span class="user-name">Your name: {{ userName }}</span>
+      <button class="user-button" (click)="onPromptForUserName()">✏️ Change</button>
+    </div>
+  </div>
+</header>

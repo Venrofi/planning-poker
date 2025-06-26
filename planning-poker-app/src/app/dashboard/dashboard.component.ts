@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PokerTableComponent } from '../components/poker-table/poker-table.component';
 import { CardComponent } from '../components/card/card.component';
+import { HeaderComponent } from '../components/header/header.component';
 import { Participant } from '../models/participant.model';
 import { Card } from '../models/cards.model';
 import { FirebaseService } from '../services/firebase.service';
@@ -12,7 +13,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, PokerTableComponent, CardComponent],
+  imports: [CommonModule, FormsModule, PokerTableComponent, CardComponent, HeaderComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -27,7 +28,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showRoomRedirectAlert = false;
   showUsernamePrompt = false;
   promptUsername = '';
-  showCopyTooltip = false;
 
   participants = signal<Participant[]>([]);
 
@@ -171,24 +171,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     return participants;
-  }
-
-  copyRoomLink(): void {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url)
-      .then(() => {
-        this.showCopyTooltip = true;
-        // Hide tooltip after 2 seconds
-        setTimeout(() => {
-          this.showCopyTooltip = false;
-        }, 1000);
-      })
-      .catch(err => console.error('Failed to copy room link:', err));
-  }
-
-  createNewRoom(): void {
-    const newRoomId = crypto.randomUUID();
-    this.router.navigate(['room', newRoomId]);
   }
 
   promptForUserName(): void {
