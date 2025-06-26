@@ -49,13 +49,6 @@
   position: relative;
   z-index: 1;
 
-  .reload-button {
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-size: 24px;
-  }
-
   .title-container {
     font-size: 34px;
     font-weight: 700;
@@ -230,38 +223,54 @@ main {
 }
 
 .room-info {
-      margin-top: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+
+    .room-id {
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    .copy-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
       font-size: 14px;
 
-      .room-id {
-        color: rgba(255, 255, 255, 0.8);
-        font-weight: 500;
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
       }
 
-      .copy-button {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 14px;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.3);
-          transform: translateY(-1px);
-        }
-
-        &:active {
-          transform: translateY(1px);
-        }
+      &:active {
+        transform: translateY(1px);
       }
     }
+
+    .participant-count {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+
+      &::before {
+        content: '👥';
+        margin-right: 4px;
+      }
+    }
+  }
 
 .user-info {
   margin-top: 10px;

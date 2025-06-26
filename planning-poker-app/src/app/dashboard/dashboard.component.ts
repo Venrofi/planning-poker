@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit {
         return;
       }
 
-      // Always join the room with the current user
+      // Join the room with the current user only
       this.firebaseService.joinRoom(roomId, this.userId(), this.userName()).then(joined => {
         if (!joined) {
           alert('Room is full! Maximum of 10 participants reached.');
@@ -65,7 +65,7 @@ export class DashboardComponent implements OnInit {
 
         this.firebaseService.getParticipants(roomId).subscribe(participants => {
           if (participants && participants.length > 0) {
-            // Room already has participants, just update the UI
+            // Room has participants, update the UI
             this.participants.set(participants);
             const areRevealed = participants.some(p => p.isRevealed);
             this.areCardsRevealed.set(areRevealed);
@@ -74,23 +74,6 @@ export class DashboardComponent implements OnInit {
             if (currentUser) {
               this.selectedCard.set(currentUser.selectedCard as Card | undefined);
             }
-          } else {
-            // This is a brand new room, initialize with some participants up to max 5
-            const initialParticipants = this.initParticipants(4); // 4 virtual + 1 real user = 5 total
-
-            // We've already joined as the current user, so just add the virtual participants
-            // Add them one by one and check if we can still add more
-            const addVirtualParticipants = async () => {
-              for (const p of initialParticipants.filter(p => p.id !== this.userId())) {
-                const joined = await this.firebaseService.joinRoom(roomId, p.id, p.name);
-                if (!joined) break; // Stop if we can't add more
-                if (p.selectedCard) {
-                  this.firebaseService.selectCard(roomId, p.id, p.selectedCard);
-                }
-              }
-            };
-
-            addVirtualParticipants();
           }
         });
       });
@@ -133,26 +116,21 @@ export class DashboardComponent implements OnInit {
       this.isRevealInProgress.set(false);
     }, 3000);
   }
-
   resetCards(): void {
     this.firebaseService.resetCards(this.roomId());
   }
 
-  initParticipants(maxVirtualParticipants: number = 9): Participant[] {
-    // Always include the current user
-    const userID = this.userId();
+  private initParticipants(maxVirtualParticipants: number = 9): Participant[] {
     const participants: Participant[] = [{
-      id: userID,
+      id: this.userId(),
       name: this.userName(),
       selectedCard: undefined,
       isRevealed: false
     }];
 
-    // Add virtual participants (up to maxVirtualParticipants or 9 by default)
     const names = ['John', 'Sarah', 'Mike', 'Emma', 'David', 'Alice', 'Bob', 'Charlie', 'Diana'];
     const cards: Card[] = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-    // Limit the number of additional participants
     const actualParticipantCount = Math.min(maxVirtualParticipants, names.length);
 
     for (let i = 0; i < actualParticipantCount; i++) {
