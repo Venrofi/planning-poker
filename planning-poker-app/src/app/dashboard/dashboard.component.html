@@ -8,6 +8,7 @@
         (ngModelChange)="updateRoomTitle($event)"
         placeholder="Sprint Planning Poker"
       />
+      <span class="participant-count">{{ participants().length }} participant(s)</span>
       <div class="room-info">
         <span class="room-id">Room ID: {{ roomId() }}</span>
         <div class="copy-button-container">
@@ -16,7 +17,6 @@
             <div class="copy-tooltip">Copied!</div>
           }
         </div>
-        <span class="participant-count">{{ participants().length }} participant(s)</span>
       </div>
       <div class="user-info">
         <span class="user-name">Your name: {{ userName() }}</span>
