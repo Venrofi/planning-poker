@@ -5,7 +5,7 @@
         class="title-input"
         type="text"
         [ngModel]="roomTitle()"
-        (ngModelChange)="roomTitle.set($event)"
+        (ngModelChange)="updateRoomTitle($event)"
         placeholder="Sprint Planning Poker"
       />
       <div class="room-info">

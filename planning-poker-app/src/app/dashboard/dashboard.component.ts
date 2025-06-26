@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { CardComponent } from '../components/card/card.component';
 import { Participant } from '../models/participant.model';
 import { Card } from '../models/cards.model';
 import { FirebaseService } from '../services/firebase.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,7 +16,7 @@ import { FirebaseService } from '../services/firebase.service';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   roomTitle = signal<string>('Sprint Planning Poker');
   roomId = signal<string>('');
   userId = signal<string>(crypto.randomUUID());
@@ -28,6 +29,8 @@ export class DashboardComponent implements OnInit {
 
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
+
+  private titleSubscription: Subscription | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -62,6 +65,12 @@ export class DashboardComponent implements OnInit {
 
         this.firebaseService.setupPresence(roomId, this.userId());
         this.firebaseService.cleanupRoom(roomId);
+
+        this.titleSubscription = this.firebaseService.getRoomTitle(roomId).subscribe(title => {
+          if (title) {
+            this.roomTitle.set(title);
+          }
+        });
 
         this.firebaseService.getParticipants(roomId).subscribe(participants => {
           if (participants && participants.length > 0) {
@@ -172,6 +181,24 @@ export class DashboardComponent implements OnInit {
             }
           });
       }
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.titleSubscription) {
+      this.titleSubscription.unsubscribe();
+    }
+  }
+
+  updateRoomTitle(newTitle: string): void {
+    this.roomTitle.set(newTitle);
+    if (this.roomId()) {
+      this.firebaseService.setRoomTitle(this.roomId(), newTitle)
+        .then(success => {
+          if (!success) {
+            console.warn('Failed to update room title in Firebase');
+          }
+        });
     }
   }
 }

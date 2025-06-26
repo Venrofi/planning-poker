@@ -19,7 +19,8 @@ export class FirebaseService {
       if (!snapshot.exists()) {
         set(roomRef, {
           revealed: false,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          title: 'Sprint Planning Poker'
         });
       }
 
@@ -260,5 +261,32 @@ export class FirebaseService {
         console.error('Error clearing reset state:', error);
         return false;
       });
+  }
+
+  setRoomTitle(roomId: string, title: string): Promise<boolean> {
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    return update(roomRef, {
+      title: title
+    }).then(() => true)
+      .catch(error => {
+        console.error('Error updating room title:', error);
+        return false;
+      });
+  }
+
+  getRoomTitle(roomId: string): Observable<string> {
+    const titleSubject = new BehaviorSubject<string>('Sprint Planning Poker');
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+
+    onValue(roomRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const roomData = snapshot.val();
+        if (roomData.title) {
+          titleSubject.next(roomData.title);
+        }
+      }
+    });
+
+    return titleSubject.asObservable();
   }
 }
