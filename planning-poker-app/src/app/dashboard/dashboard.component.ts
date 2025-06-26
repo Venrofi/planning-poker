@@ -29,7 +29,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showUsernamePrompt = false;
   promptUsername = '';
 
+  // User left notification
+  showUserLeftNotification = false;
+  userLeftMessage = '';
+
   participants = signal<Participant[]>([]);
+  private previousParticipants: Participant[] = [];
+  private isCurrentUserLeaving = false;
 
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
@@ -90,8 +96,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         this.firebaseService.getParticipants(this.roomId()).subscribe(participants => {
           if (participants && participants.length > 0) {
+            // Check for users who left before updating the participants list
+            // But only if the current user is not the one leaving
+            if (!this.isCurrentUserLeaving) {
+              this.checkForLeftUsers(participants);
+            }
+
             // Room has participants, update the UI
             this.participants.set(participants);
+            this.previousParticipants = [...participants]; // Store for next comparison
+
             const areRevealed = participants.some(p => p.isRevealed);
             this.areCardsRevealed.set(areRevealed);
 
@@ -99,6 +113,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             if (currentUser) {
               this.selectedCard.set(currentUser.selectedCard as Card | undefined);
             }
+          } else if (participants && participants.length === 0) {
+            // Empty room, clear previous participants but don't show notifications
+            this.participants.set([]);
+            this.previousParticipants = [];
           }
         });
       });
@@ -214,6 +232,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Remove event listener
     window.removeEventListener('beforeunload', this.boundBeforeUnloadHandler);
 
+    // Set flag to indicate current user is leaving
+    this.isCurrentUserLeaving = true;
+
     // Also remove the participant when the component is destroyed
     this.removeParticipantFromRoom();
   }
@@ -231,6 +252,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private handleBeforeUnload(event: BeforeUnloadEvent): void {
+    // Set flag to indicate current user is leaving
+    this.isCurrentUserLeaving = true;
+
     // Remove the participant from the room when the window/tab is closed
     this.removeParticipantFromRoom();
   }
@@ -240,5 +264,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.firebaseService.removeParticipant(this.roomId(), this.userId())
         .catch(error => console.error('Error removing participant:', error));
     }
+  }
+
+  async createNewRoom(): Promise<void> {
+    const newRoomId = crypto.randomUUID();
+
+    // Set flag to indicate current user is leaving
+    this.isCurrentUserLeaving = true;
+
+    try {
+      if (this.roomId() && this.userId()) {
+        await this.firebaseService.removeParticipant(this.roomId(), this.userId());
+      }
+    } catch (error) {
+      console.error('Error removing participant before creating new room:', error);
+    }
+
+    // Reset the flag when navigating to new room
+    setTimeout(() => {
+      this.isCurrentUserLeaving = false;
+    }, 1000);
+
+    this.router.navigate(['room', newRoomId]);
+  }
+
+  private checkForLeftUsers(currentParticipants: Participant[]): void {
+    // Only check if we have previous participants to compare with
+    if (this.previousParticipants.length === 0) {
+      return;
+    }
+
+    // Find participants who were in the previous list but not in current list
+    const leftUsers = this.previousParticipants.filter(prevParticipant =>
+      !currentParticipants.find(currentParticipant =>
+        currentParticipant.id === prevParticipant.id
+      )
+    );
+
+    // Show notification for each user who left (excluding current user)
+    leftUsers.forEach(leftUser => {
+      if (leftUser.id !== this.userId()) {
+        this.showUserLeftMessage(leftUser.name);
+      }
+    });
+  }
+
+  private showUserLeftMessage(userName: string): void {
+    this.userLeftMessage = `${userName} left the room`;
+    this.showUserLeftNotification = true;
+
+    // Auto-hide notification after 4 seconds
+    setTimeout(() => {
+      this.showUserLeftNotification = false;
+    }, 4000);
+  }
+
+  dismissUserLeftNotification(): void {
+    this.showUserLeftNotification = false;
   }
 }

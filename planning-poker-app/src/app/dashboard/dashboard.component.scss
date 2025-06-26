@@ -140,3 +140,69 @@ main {
     }
   }
 }
+
+.notification-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideInFromRight 0.3s ease-out;
+
+  .notification-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 250px;
+    max-width: 350px;
+    position: relative;
+
+    .notification-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      color: #4b2995;
+      font-weight: 500;
+      font-size: 14px;
+      flex-grow: 1;
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.1);
+        color: #333;
+      }
+    }
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

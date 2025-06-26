@@ -19,6 +19,7 @@ export class HeaderComponent {
 
   @Output() roomTitleChange = new EventEmitter<string>();
   @Output() promptForUserName = new EventEmitter<void>();
+  @Output() createNewRoom = new EventEmitter<void>();
 
   showCopyTooltip: boolean = false;
 
@@ -28,9 +29,8 @@ export class HeaderComponent {
     this.roomTitleChange.emit(newTitle);
   }
 
-  createNewRoom(): void {
-    const newRoomId = crypto.randomUUID();
-    this.router.navigate(['room', newRoomId]);
+  onCreateNewRoom(): void {
+    this.createNewRoom.emit();
   }
 
   copyRoomLink(): void {

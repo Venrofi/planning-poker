@@ -5,6 +5,7 @@
     [roomId]="roomId()"
     [userName]="userName()"
     (roomTitleChange)="updateRoomTitle($event)"
+    (createNewRoom)="createNewRoom()"
     (promptForUserName)="promptForUserName()">
   </app-header>
   <main>
@@ -64,6 +65,17 @@
           <button class="cancel-button" (click)="cancelUsernameChange()">Cancel</button>
           <button (click)="confirmUsernameChange()">OK</button>
         </div>
+      </div>
+    </div>
+  }
+
+  <!-- User left notification -->
+  @if (showUserLeftNotification) {
+    <div class="notification-popup">
+      <div class="notification-content">
+        <span class="notification-icon">👋</span>
+        <p>{{ userLeftMessage }}</p>
+        <button class="notification-close" (click)="dismissUserLeftNotification()">×</button>
       </div>
     </div>
   }
