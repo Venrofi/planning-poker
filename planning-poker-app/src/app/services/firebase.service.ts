@@ -465,4 +465,16 @@ export class FirebaseService {
         return false;
       });
   }
+
+  getRoomRevealedState(roomId: string): Observable<boolean> {
+    const roomRevealedSubject = new BehaviorSubject<boolean>(false);
+    const roomRef = ref(this.db, `rooms/${roomId}/revealed`);
+
+    onValue(roomRef, (snapshot) => {
+      const revealed = snapshot.val() || false;
+      roomRevealedSubject.next(revealed);
+    });
+
+    return roomRevealedSubject.asObservable();
+  }
 }
