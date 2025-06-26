@@ -5,4 +5,5 @@ export interface Participant {
   name: string;
   selectedCard?: Card;
   isRevealed: boolean;
+  isAdmin?: boolean;
 }

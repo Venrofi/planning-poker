@@ -22,6 +22,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   participants = input.required<Participant[]>();
   roomId = input.required<string>();
   currentUserId = input.required<string>();
+  isCurrentUserAdmin = input.required<boolean>();
 
   areCardsRevealed = signal<boolean>(false);
   isCountingDown = signal<boolean>(false);

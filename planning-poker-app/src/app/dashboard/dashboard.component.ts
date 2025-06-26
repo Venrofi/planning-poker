@@ -322,4 +322,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   dismissUserLeftNotification(): void {
     this.showUserLeftNotification = false;
   }
+
+  isCurrentUserAdmin(): boolean {
+    const currentUser = this.participants().find(p => p.id === this.userId());
+    return currentUser?.isAdmin || false;
+  }
 }

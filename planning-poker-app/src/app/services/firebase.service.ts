@@ -64,12 +64,16 @@ export class FirebaseService {
             return false; // Room is full
           }
 
+          // First participant becomes admin
+          const isAdmin = participantCount === 0;
+
           // Add the participant
           set(participantRef, {
             id: userId,
             name: username,
             selectedCard: null,
-            isRevealed: false
+            isRevealed: false,
+            isAdmin: isAdmin
           });
           return true; // Success
         });

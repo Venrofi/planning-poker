@@ -13,6 +13,7 @@
       [participants]="participants()"
       [roomId]="roomId()"
       [currentUserId]="userId()"
+      [isCurrentUserAdmin]="isCurrentUserAdmin()"
       (participantsChange)="updateParticipants($event)"
       (isRevealInProgressChange)="isRevealInProgress.set($event)">
     </app-poker-table>

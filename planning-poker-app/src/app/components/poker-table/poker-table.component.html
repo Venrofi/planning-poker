@@ -19,12 +19,16 @@
           </div>
         }
 
-        <div class="voting-controls">
-          <button class="reveal-btn" (click)="startCountdown()">
-            {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
-          </button>
-          <button class="reset-btn" (click)="resetCards()">Reset</button>
-        </div>
+        @if (isCurrentUserAdmin()) {
+          <div class="voting-controls">
+            <button class="reveal-btn" (click)="startCountdown()">
+              {{ areCardsRevealed() ? 'Hide Cards' : 'Reveal Cards' }}
+            </button>
+            <button class="reset-btn" (click)="resetCards()">Reset</button>
+          </div>
+        } @else {
+          <p class="admin-info">👑 Only the room admin can reveal cards and reset the game</p>
+        }
       } @else {
         <div class="countdown-container">
           <div class="countdown">{{ countdownValue() }}</div>

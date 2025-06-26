@@ -123,6 +123,19 @@
     }
   }
 
+  .admin-info {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    font-size: 12px;
+    font-weight: 400;
+    color: white;
+    text-align: center;
+    letter-spacing: 0.2px;
+    opacity: 0.7;
+  }
+
   &::before {
     content: '';
     position: absolute;
