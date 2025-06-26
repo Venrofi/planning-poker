@@ -1,7 +1,9 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ParticipantComponent } from '../participant/participant.component';
 import { Participant } from '../../models/participant.model';
+import { FirebaseService } from '../../services/firebase.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-poker-table',
@@ -10,15 +12,23 @@ import { Participant } from '../../models/participant.model';
   templateUrl: './poker-table.component.html',
   styleUrl: './poker-table.component.scss'
 })
-export class PokerTableComponent {
+export class PokerTableComponent implements OnInit, OnDestroy {
   private readonly COUNTDOWN_SECONDS = 3;
+  private firebaseService = inject(FirebaseService);
+  private countdownSubscription: Subscription | null = null;
+  private resetSubscription: Subscription | null = null;
 
   participants = input.required<Participant[]>();
+  roomId = input.required<string>();
+  currentUserId = input.required<string>();
 
   areCardsRevealed = signal<boolean>(false);
   isCountingDown = signal<boolean>(false);
   countdownValue = signal<string>(this.COUNTDOWN_SECONDS.toString());
   winningCard = computed(() => this.calculateWinningCard());
+  countdownStartedBy = signal<string | null>(null);
+  resetInitiatedBy = signal<string | null>(null);
+  isResetting = signal<boolean>(false);
 
   participantsChange = output<Participant[]>();
   isRevealInProgressChange = output<boolean>();
@@ -29,10 +39,19 @@ export class PokerTableComponent {
       return;
     }
 
+    if (this.isCountingDown()) {
+      return;
+    }
+
+    this.countdownStartedBy.set(this.currentUserId());
     this.isCountingDown.set(true);
     this.isRevealInProgressChange.emit(true);
+
+    this.firebaseService.startCountdown(this.roomId(), this.currentUserId());
+
     this.asyncCountdown();
   }
+
   private async asyncCountdown(): Promise<void> {
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -46,12 +65,21 @@ export class PokerTableComponent {
 
     this.isCountingDown.set(false);
     this.isRevealInProgressChange.emit(false);
+
+    if (this.countdownStartedBy() === this.currentUserId()) {
+      this.firebaseService.endCountdown(this.roomId());
+    }
+
     this.toggleReveal();
   }
 
   toggleReveal(): void {
     const newRevealState = !this.areCardsRevealed();
     this.areCardsRevealed.set(newRevealState);
+
+    if (this.countdownStartedBy() === this.currentUserId() || this.countdownStartedBy() === null) {
+      this.firebaseService.setRevealState(this.roomId(), newRevealState);
+    }
 
     const updatedParticipants = this.participants().map(p => ({ ...p, isRevealed: newRevealState }));
     this.participantsChange.emit(updatedParticipants);
@@ -60,14 +88,29 @@ export class PokerTableComponent {
   resetCards(): void {
     this.areCardsRevealed.set(false);
     this.isCountingDown.set(false);
+    this.countdownStartedBy.set(null);
     this.isRevealInProgressChange.emit(false);
+    this.isResetting.set(true);
+    this.resetInitiatedBy.set(this.currentUserId());
 
-    const resetParticipants = this.participants().map(p => ({
-      ...p,
-      selectedCard: undefined,
-      isRevealed: false
-    }));
-    this.participantsChange.emit(resetParticipants);
+    this.firebaseService.initiateReset(this.roomId(), this.currentUserId())
+      .then(() => {
+        return this.firebaseService.endCountdown(this.roomId());
+      })
+      .then(() => {
+        const resetParticipants = this.participants().map(p => ({
+          ...p,
+          selectedCard: undefined,
+          isRevealed: false
+        }));
+        this.participantsChange.emit(resetParticipants);
+
+        setTimeout(() => {
+          this.isResetting.set(false);
+          this.resetInitiatedBy.set(null);
+          this.firebaseService.clearResetState(this.roomId());
+        }, 1000);
+      });
   }
 
   private calculateWinningCard(): string | undefined {
@@ -105,6 +148,58 @@ export class PokerTableComponent {
       return `${winners.join(' / ')} (${maxCount} votes each)`;
     } else {
       return `${winners[0]} (${maxCount} vote${maxCount !== 1 ? 's' : ''})`;
+    }
+  }
+
+  // Helper method to get participant name from ID
+  getParticipantName(userId: string | null): string {
+    if (!userId) return 'Unknown';
+
+    const participant = this.participants().find(p => p.id === userId);
+    return participant ? participant.name : 'Someone';
+  }
+
+  ngOnInit(): void {
+    this.countdownSubscription = this.firebaseService.getCountdownState(this.roomId()).subscribe(countdownState => {
+      if (countdownState.isActive && !this.isCountingDown()) {
+        this.countdownStartedBy.set(countdownState.startedBy);
+        this.isCountingDown.set(true);
+        this.isRevealInProgressChange.emit(true);
+        this.asyncCountdown();
+      }
+    });
+
+    this.resetSubscription = this.firebaseService.getResetState(this.roomId()).subscribe(resetState => {
+      if (resetState.isActive && resetState.initiatedBy !== this.currentUserId()) {
+        this.resetInitiatedBy.set(resetState.initiatedBy);
+        this.isResetting.set(true);
+
+        this.areCardsRevealed.set(false);
+        this.isCountingDown.set(false);
+        this.countdownStartedBy.set(null);
+        this.isRevealInProgressChange.emit(false);
+
+        const resetParticipants = this.participants().map(p => ({
+          ...p,
+          selectedCard: undefined,
+          isRevealed: false
+        }));
+        this.participantsChange.emit(resetParticipants);
+
+        setTimeout(() => {
+          this.isResetting.set(false);
+          this.resetInitiatedBy.set(null);
+        }, 1000);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownSubscription) {
+      this.countdownSubscription.unsubscribe();
+    }
+    if (this.resetSubscription) {
+      this.resetSubscription.unsubscribe();
     }
   }
 }

@@ -163,4 +163,102 @@ export class FirebaseService {
       message: 'Testing connection'
     });
   }
+
+  startCountdown(roomId: string, userId: string): Promise<boolean> {
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    return update(roomRef, {
+      isCountdownActive: true,
+      countdownStartedAt: new Date().toISOString(),
+      countdownStartedBy: userId
+    }).then(() => true)
+      .catch(error => {
+        console.error('Error starting countdown:', error);
+        return false;
+      });
+  }
+
+  getCountdownState(roomId: string): Observable<{ isActive: boolean, startedAt: string | null, startedBy: string | null }> {
+    const countdownSubject = new BehaviorSubject<{ isActive: boolean, startedAt: string | null, startedBy: string | null }>({
+      isActive: false,
+      startedAt: null,
+      startedBy: null
+    });
+
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    onValue(roomRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const roomData = snapshot.val();
+        countdownSubject.next({
+          isActive: roomData.isCountdownActive || false,
+          startedAt: roomData.countdownStartedAt || null,
+          startedBy: roomData.countdownStartedBy || null
+        });
+      }
+    });
+
+    return countdownSubject.asObservable();
+  }
+
+  endCountdown(roomId: string): Promise<boolean> {
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    return update(roomRef, {
+      isCountdownActive: false,
+      countdownStartedAt: null,
+      countdownStartedBy: null
+    }).then(() => true)
+      .catch(error => {
+        console.error('Error ending countdown:', error);
+        return false;
+      });
+  }
+
+  initiateReset(roomId: string, userId: string): Promise<boolean> {
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    return update(roomRef, {
+      isResetActive: true,
+      resetInitiatedAt: new Date().toISOString(),
+      resetInitiatedBy: userId
+    }).then(() => {
+      this.resetCards(roomId);
+      return true;
+    }).catch(error => {
+      console.error('Error initiating reset:', error);
+      return false;
+    });
+  }
+
+  getResetState(roomId: string): Observable<{ isActive: boolean, initiatedAt: string | null, initiatedBy: string | null }> {
+    const resetSubject = new BehaviorSubject<{ isActive: boolean, initiatedAt: string | null, initiatedBy: string | null }>({
+      isActive: false,
+      initiatedAt: null,
+      initiatedBy: null
+    });
+
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    onValue(roomRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const roomData = snapshot.val();
+        resetSubject.next({
+          isActive: roomData.isResetActive || false,
+          initiatedAt: roomData.resetInitiatedAt || null,
+          initiatedBy: roomData.resetInitiatedBy || null
+        });
+      }
+    });
+
+    return resetSubject.asObservable();
+  }
+
+  clearResetState(roomId: string): Promise<boolean> {
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    return update(roomRef, {
+      isResetActive: false,
+      resetInitiatedAt: null,
+      resetInitiatedBy: null
+    }).then(() => true)
+      .catch(error => {
+        console.error('Error clearing reset state:', error);
+        return false;
+      });
+  }
 }

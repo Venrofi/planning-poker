@@ -1,7 +1,17 @@
 <div class="table-container">
   <div class="poker-table">
     <div class="table-content">
-      @if (!isCountingDown()) {
+      @if (isResetting()) {
+        <div class="reset-container">
+          <div class="reset-message">
+            @if (resetInitiatedBy() && resetInitiatedBy() !== currentUserId()) {
+              {{ getParticipantName(resetInitiatedBy()) }} reset the game
+            } @else {
+              Resetting game...
+            }
+          </div>
+        </div>
+      } @else if (!isCountingDown()) {
         @if (areCardsRevealed() && winningCard()) {
           <div class="voting-results">
             <span class="winner-label">Winner is:</span>
@@ -16,7 +26,14 @@
           <button class="reset-btn" (click)="resetCards()">Reset</button>
         </div>
       } @else {
-        <div class="countdown">{{ countdownValue() }}</div>
+        <div class="countdown-container">
+          <div class="countdown">{{ countdownValue() }}</div>
+          @if (countdownStartedBy() && countdownStartedBy() !== currentUserId()) {
+            <div class="countdown-initiator">
+              {{ getParticipantName(countdownStartedBy()) }} is revealing cards...
+            </div>
+          }
+        </div>
       }
     </div>
   </div>

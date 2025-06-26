@@ -22,6 +22,8 @@
   <main>
     <app-poker-table
       [participants]="participants()"
+      [roomId]="roomId()"
+      [currentUserId]="userId()"
       (participantsChange)="updateParticipants($event)"
       (isRevealInProgressChange)="isRevealInProgress.set($event)">
     </app-poker-table>
