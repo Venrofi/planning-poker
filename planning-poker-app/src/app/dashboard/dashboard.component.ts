@@ -41,6 +41,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedCard = signal<Card | undefined>(undefined);
 
   private titleSubscription: Subscription | null = null;
+  private participantsSubscription: Subscription | null = null;
+  private routeSubscription: Subscription | null = null;
   private boundBeforeUnloadHandler: any;
 
   constructor(
@@ -61,7 +63,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.promptForUserName();
     }
 
-    this.route.paramMap.subscribe(params => {
+    this.routeSubscription = this.route.paramMap.subscribe(params => {
       const providedRoomId = params.get('id');
       const generatedRoomId = crypto.randomUUID();
 
@@ -81,7 +83,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
           console.warn(`Unable to join room "${providedRoomId}". Creating a new room.`);
           this.showRoomRedirectAlert = true;
           this.roomId.set(generatedRoomId);
-          this.router.navigate(['room', generatedRoomId]);
+          // Force component reload for consistency
+          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigate(['room', generatedRoomId]);
+          });
           return;
         }
 
@@ -94,7 +99,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         });
 
-        this.firebaseService.getParticipants(this.roomId()).subscribe(participants => {
+        this.participantsSubscription = this.firebaseService.getParticipants(this.roomId()).subscribe(participants => {
           if (participants && participants.length > 0) {
             // Check for users who left before updating the participants list
             // But only if the current user is not the one leaving
@@ -225,18 +230,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Set flag to indicate current user is leaving
+    this.isCurrentUserLeaving = true;
+
+    // Clean up all subscriptions
     if (this.titleSubscription) {
       this.titleSubscription.unsubscribe();
+      this.titleSubscription = null;
+    }
+    if (this.participantsSubscription) {
+      this.participantsSubscription.unsubscribe();
+      this.participantsSubscription = null;
+    }
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
+      this.routeSubscription = null;
     }
 
     // Remove event listener
     window.removeEventListener('beforeunload', this.boundBeforeUnloadHandler);
 
-    // Set flag to indicate current user is leaving
-    this.isCurrentUserLeaving = true;
-
-    // Also remove the participant when the component is destroyed
+    // Remove the participant from the room
     this.removeParticipantFromRoom();
+
+    // Clear all component state
+    this.participants.set([]);
+    this.previousParticipants = [];
+    this.areCardsRevealed.set(false);
+    this.isRevealInProgress.set(false);
+    this.selectedCard.set(undefined);
+    this.showUserLeftNotification = false;
   }
 
   updateRoomTitle(newTitle: string): void {
@@ -268,7 +291,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   async createNewRoom(): Promise<void> {
     const newRoomId = crypto.randomUUID();
+    await this.navigateToRoomWithCleanup(newRoomId);
+  }
 
+  /**
+   * Helper function to navigate to a room with proper cleanup.
+   * Uses a two-step navigation pattern to force component destruction and recreation,
+   * which is necessary to prevent memory leaks and cross-room event bugs.
+   */
+  private async navigateToRoomWithCleanup(roomId: string): Promise<void> {
     // Set flag to indicate current user is leaving
     this.isCurrentUserLeaving = true;
 
@@ -277,15 +308,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
         await this.firebaseService.removeParticipant(this.roomId(), this.userId());
       }
     } catch (error) {
-      console.error('Error removing participant before creating new room:', error);
+      console.error('Error removing participant before navigating to new room:', error);
     }
 
-    // Reset the flag when navigating to new room
-    setTimeout(() => {
-      this.isCurrentUserLeaving = false;
-    }, 1000);
-
-    this.router.navigate(['room', newRoomId]);
+    // Force component reload by navigating away and back
+    // This ensures proper cleanup of subscriptions and component state
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['room', roomId]);
+    });
   }
 
   private checkForLeftUsers(currentParticipants: Participant[]): void {
