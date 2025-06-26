@@ -186,6 +186,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .catch(err => console.error('Failed to copy room link:', err));
   }
 
+  createNewRoom(): void {
+    const newRoomId = crypto.randomUUID();
+    this.router.navigate(['room', newRoomId]);
+  }
+
   promptForUserName(): void {
     const defaultName = localStorage.getItem('planningPokerUserName') || '';
     this.promptUsername = defaultName;
