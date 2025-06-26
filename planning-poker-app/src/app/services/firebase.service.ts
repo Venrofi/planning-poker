@@ -11,7 +11,11 @@ export class FirebaseService {
 
   joinRoom(roomId: string, userId: string, username: string): Promise<boolean> {
     const MAX_ROOM_PARTICIPANTS = 10; // Maximum number of participants allowed in a room
-    // First check if the room exists, if not create it
+
+    // First check and clean up any stale rooms in the database
+    this.checkStaleRooms();
+
+    // Then check if the room exists, if not create it
     const roomRef = ref(this.db, `rooms/${roomId}`);
 
     return get(roomRef).then((snapshot) => {
@@ -133,25 +137,142 @@ export class FirebaseService {
 
   setupPresence(roomId: string, userId: string): void {
     const presenceRef = ref(this.db, `rooms/${roomId}/presence/${userId}`);
+    const participantRef = ref(this.db, `rooms/${roomId}/participants/${userId}`);
+    const roomRef = ref(this.db, `rooms/${roomId}`);
     const connectedRef = ref(this.db, '.info/connected');
 
     onValue(connectedRef, (snapshot) => {
       if (snapshot.val() === true) {
+        // When the client connects, set their presence
         set(presenceRef, true);
+
+        // First, set up an onDisconnect to remove this user's presence and participant data
         onDisconnect(presenceRef).remove();
+        onDisconnect(participantRef).remove();
+
+        // Second, set up a special transaction that will run server-side when the client disconnects
+        // This will check if this was the last participant and delete the room if needed
+        const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
+        const presenceListRef = ref(this.db, `rooms/${roomId}/presence`);
+
+        // Create a server value that will be evaluated when the disconnect happens
+        onDisconnect(participantRef).set(null).then(() => {
+          console.log('Set up participant cleanup on disconnect');
+
+          // We need to manually check for the last participant
+          // This runs a server-side check when the client disconnects
+          const checkLastParticipantRef = ref(this.db, `rooms/${roomId}/.lastParticipantCheck/${userId}`);
+
+          // This node is created when disconnect happens and then immediately cleaned up
+          onDisconnect(checkLastParticipantRef).set(new Date().toISOString())
+            .then(() => {
+              // Set up a listener that will check when this node appears
+              onValue(checkLastParticipantRef, (checkSnapshot) => {
+                if (checkSnapshot.exists()) {
+                  console.log(`Last participant check triggered for ${userId}`);
+
+                  // Check if there are any participants left
+                  get(participantsRef).then(participantsSnapshot => {
+                    if (!participantsSnapshot.exists() ||
+                      Object.keys(participantsSnapshot.val() || {}).length === 0) {
+                      // No participants left, delete the room immediately
+                      console.log(`Room ${roomId} is now empty after disconnect, deleting immediately`);
+                      remove(roomRef);
+                    }
+
+                    // Remove the check node regardless
+                    remove(checkLastParticipantRef);
+                  });
+                }
+              });
+            });
+        });
       }
     });
   }
 
   cleanupRoom(roomId: string): void {
     const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
 
+    // Check for empty rooms based on presence
     onValue(presenceRef, (snapshot) => {
       if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
-        setTimeout(() => {
-          const roomRef = ref(this.db, `rooms/${roomId}`);
-          remove(roomRef);
-        }, 900000); // 15 minutes
+        // Room is empty by presence, check participants too
+        get(participantsRef).then(participantsSnapshot => {
+          if (!participantsSnapshot.exists() || Object.keys(participantsSnapshot.val() || {}).length === 0) {
+            // Room is truly empty, delete it immediately
+            console.log(`Room ${roomId} is empty, deleting it immediately`);
+            remove(roomRef);
+          }
+        });
+      }
+    });
+
+    // Also listen to participants directly in case presence isn't updated
+    onValue(participantsRef, (snapshot) => {
+      if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
+        // No participants, check presence too to be sure
+        get(presenceRef).then(presenceSnapshot => {
+          if (!presenceSnapshot.exists() || Object.keys(presenceSnapshot.val() || {}).length === 0) {
+            // Room is truly empty, delete it immediately
+            console.log(`Room ${roomId} is empty (from participants check), deleting it immediately`);
+            remove(roomRef);
+          }
+        });
+      }
+    });
+  }
+
+  private checkStaleRooms(): void {
+    // Get all rooms
+    const roomsRef = ref(this.db, 'rooms');
+
+    get(roomsRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        snapshot.forEach((childSnapshot) => {
+          const roomId = childSnapshot.key;
+          if (!roomId) return false;
+
+          // For each room, check if it has any participants
+          const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
+          const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
+
+          // Get both participants and presence
+          Promise.all([
+            get(participantsRef),
+            get(presenceRef)
+          ]).then(([participantsSnapshot, presenceSnapshot]) => {
+            const hasParticipants = participantsSnapshot.exists() &&
+              Object.keys(participantsSnapshot.val() || {}).length > 0;
+
+            const hasPresence = presenceSnapshot.exists() &&
+              Object.keys(presenceSnapshot.val() || {}).length > 0;
+
+            // If room has no participants and no presence, delete it
+            if (!hasParticipants && !hasPresence) {
+              const roomRef = ref(this.db, `rooms/${roomId}`);
+              remove(roomRef);
+              console.log(`Removed empty room during cleanup: ${roomId}`);
+            }
+
+            // Clean up old format flags if they exist
+            const roomData = childSnapshot.val();
+            if ((roomData.deletion_scheduled || roomData.emptyAt || roomData.lastActive) &&
+              (hasParticipants || hasPresence)) {
+              // Room has participants but has deletion flags, clear them
+              const roomRef = ref(this.db, `rooms/${roomId}`);
+              update(roomRef, {
+                deletion_scheduled: null,
+                emptyAt: null,
+                lastActive: null
+              });
+            }
+          });
+
+          return false; // Don't cancel enumeration
+        });
       }
     });
   }
@@ -288,5 +409,44 @@ export class FirebaseService {
     });
 
     return titleSubject.asObservable();
+  }
+
+  removeParticipant(roomId: string, userId: string): Promise<boolean> {
+    const participantRef = ref(this.db, `rooms/${roomId}/participants/${userId}`);
+    const presenceRef = ref(this.db, `rooms/${roomId}/presence/${userId}`);
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+
+    return Promise.all([
+      remove(participantRef),
+      remove(presenceRef)
+    ])
+      .then(() => {
+        console.log(`Participant ${userId} removed from room ${roomId}`);
+
+        // Check if this was the last participant
+        return Promise.all([
+          get(ref(this.db, `rooms/${roomId}/participants`)),
+          get(ref(this.db, `rooms/${roomId}/presence`))
+        ]);
+      })
+      .then(([participantsSnapshot, presenceSnapshot]) => {
+        const hasParticipants = participantsSnapshot.exists() &&
+          Object.keys(participantsSnapshot.val() || {}).length > 0;
+
+        const hasPresence = presenceSnapshot.exists() &&
+          Object.keys(presenceSnapshot.val() || {}).length > 0;
+
+        if (!hasParticipants && !hasPresence) {
+          // No participants and no presence left, delete the room immediately
+          console.log(`Room ${roomId} is now empty, deleting immediately`);
+          return remove(roomRef);
+        }
+        return Promise.resolve();
+      })
+      .then(() => true)
+      .catch(error => {
+        console.error('Error removing participant:', error);
+        return false;
+      });
   }
 }

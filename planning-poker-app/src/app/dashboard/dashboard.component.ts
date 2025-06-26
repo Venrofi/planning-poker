@@ -31,12 +31,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedCard = signal<Card | undefined>(undefined);
 
   private titleSubscription: Subscription | null = null;
+  private boundBeforeUnloadHandler: any;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private firebaseService: FirebaseService
-  ) { }
+  ) {
+    // Set up the beforeunload event handler to remove the participant when the window/tab is closed
+    this.boundBeforeUnloadHandler = this.handleBeforeUnload.bind(this);
+    window.addEventListener('beforeunload', this.boundBeforeUnloadHandler);
+  }
 
   ngOnInit(): void {
     const savedUserName = localStorage.getItem('planningPokerUserName');
@@ -188,6 +193,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.titleSubscription) {
       this.titleSubscription.unsubscribe();
     }
+
+    // Remove event listener
+    window.removeEventListener('beforeunload', this.boundBeforeUnloadHandler);
+
+    // Also remove the participant when the component is destroyed
+    this.removeParticipantFromRoom();
   }
 
   updateRoomTitle(newTitle: string): void {
@@ -199,6 +210,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
             console.warn('Failed to update room title in Firebase');
           }
         });
+    }
+  }
+
+  private handleBeforeUnload(event: BeforeUnloadEvent): void {
+    // Remove the participant from the room when the window/tab is closed
+    this.removeParticipantFromRoom();
+  }
+
+  private removeParticipantFromRoom(): void {
+    if (this.roomId() && this.userId()) {
+      this.firebaseService.removeParticipant(this.roomId(), this.userId())
+        .catch(error => console.error('Error removing participant:', error));
     }
   }
 }
