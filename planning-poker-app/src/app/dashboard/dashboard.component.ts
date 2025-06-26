@@ -36,6 +36,13 @@ export class DashboardComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    const savedUserName = localStorage.getItem('planningPokerUserName');
+    if (savedUserName) {
+      this.userName.set(savedUserName);
+    } else {
+      this.promptForUserName();
+    }
+
     this.route.paramMap.subscribe(params => {
       const roomId = params.get('id') || crypto.randomUUID();
       this.roomId.set(roomId);
@@ -45,31 +52,47 @@ export class DashboardComponent implements OnInit {
         return;
       }
 
-      this.firebaseService.joinRoom(roomId, this.userId(), this.userName());
-
-      this.firebaseService.getParticipants(roomId).subscribe(participants => {
-        if (participants && participants.length > 0) {
-          this.participants.set(participants);
-          const areRevealed = participants.some(p => p.isRevealed);
-          this.areCardsRevealed.set(areRevealed);
-
-          const currentUser = participants.find(p => p.id === this.userId());
-          if (currentUser) {
-            this.selectedCard.set(currentUser.selectedCard as Card | undefined);
-          }
-        } else {
-          const initialParticipants = this.initParticipants();
-          initialParticipants.forEach(p => {
-            if (p.id === this.userId()) {
-              this.firebaseService.joinRoom(roomId, p.id, p.name);
-            } else {
-              this.firebaseService.joinRoom(roomId, p.id, p.name);
-              if (p.selectedCard) {
-                this.firebaseService.selectCard(roomId, p.id, p.selectedCard);
-              }
-            }
-          });
+      // Always join the room with the current user
+      this.firebaseService.joinRoom(roomId, this.userId(), this.userName()).then(joined => {
+        if (!joined) {
+          alert('Room is full! Maximum of 10 participants reached.');
+          // Could navigate away or show a message
+          return;
         }
+
+        this.firebaseService.setupPresence(roomId, this.userId());
+        this.firebaseService.cleanupRoom(roomId);
+
+        this.firebaseService.getParticipants(roomId).subscribe(participants => {
+          if (participants && participants.length > 0) {
+            // Room already has participants, just update the UI
+            this.participants.set(participants);
+            const areRevealed = participants.some(p => p.isRevealed);
+            this.areCardsRevealed.set(areRevealed);
+
+            const currentUser = participants.find(p => p.id === this.userId());
+            if (currentUser) {
+              this.selectedCard.set(currentUser.selectedCard as Card | undefined);
+            }
+          } else {
+            // This is a brand new room, initialize with some participants up to max 5
+            const initialParticipants = this.initParticipants(4); // 4 virtual + 1 real user = 5 total
+
+            // We've already joined as the current user, so just add the virtual participants
+            // Add them one by one and check if we can still add more
+            const addVirtualParticipants = async () => {
+              for (const p of initialParticipants.filter(p => p.id !== this.userId())) {
+                const joined = await this.firebaseService.joinRoom(roomId, p.id, p.name);
+                if (!joined) break; // Stop if we can't add more
+                if (p.selectedCard) {
+                  this.firebaseService.selectCard(roomId, p.id, p.selectedCard);
+                }
+              }
+            };
+
+            addVirtualParticipants();
+          }
+        });
       });
     });
   }
@@ -115,7 +138,8 @@ export class DashboardComponent implements OnInit {
     this.firebaseService.resetCards(this.roomId());
   }
 
-  initParticipants(): Participant[] {
+  initParticipants(maxVirtualParticipants: number = 9): Participant[] {
+    // Always include the current user
     const userID = this.userId();
     const participants: Participant[] = [{
       id: userID,
@@ -124,20 +148,24 @@ export class DashboardComponent implements OnInit {
       isRevealed: false
     }];
 
+    // Add virtual participants (up to maxVirtualParticipants or 9 by default)
     const names = ['John', 'Sarah', 'Mike', 'Emma', 'David', 'Alice', 'Bob', 'Charlie', 'Diana'];
     const cards: Card[] = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-    names.forEach((name, index) => {
+    // Limit the number of additional participants
+    const actualParticipantCount = Math.min(maxVirtualParticipants, names.length);
+
+    for (let i = 0; i < actualParticipantCount; i++) {
       const randomIndex = Math.floor(Math.random() * cards.length);
       const randomId = crypto.randomUUID();
 
       participants.push({
         id: randomId,
-        name,
+        name: names[i],
         selectedCard: cards[randomIndex],
         isRevealed: false
       });
-    });
+    }
 
     return participants;
   }
@@ -147,5 +175,25 @@ export class DashboardComponent implements OnInit {
     navigator.clipboard.writeText(url)
       .then(() => alert('Room link copied to clipboard!'))
       .catch(err => console.error('Failed to copy room link:', err));
+  }
+
+  promptForUserName(): void {
+    const defaultName = localStorage.getItem('planningPokerUserName') || '';
+    const userName = prompt('Enter your name:', defaultName);
+
+    if (userName && userName.trim()) {
+      this.userName.set(userName.trim());
+      localStorage.setItem('planningPokerUserName', userName.trim());
+
+      // Update the user in Firebase if we're already connected
+      if (this.roomId() && this.userId()) {
+        this.firebaseService.updateUserName(this.roomId(), this.userId(), userName.trim())
+          .then(success => {
+            if (!success) {
+              console.warn('Failed to update username in Firebase');
+            }
+          });
+      }
+    }
   }
 }

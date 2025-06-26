@@ -20,7 +20,7 @@
       }
     </div>
   </div>
-  @for (participant of participants(); track participant.id) {
-    <app-participant [ngClass]="'participant-position-' + participant.id" [participant]="participant"></app-participant>
+  @for (participant of participants(); track participant.id; let i = $index) {
+    <app-participant [ngClass]="'participant-position-' + i" [participant]="participant"></app-participant>
   }
 </div>
