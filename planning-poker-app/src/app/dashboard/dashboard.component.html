@@ -10,7 +10,12 @@
       />
       <div class="room-info">
         <span class="room-id">Room ID: {{ roomId() }}</span>
-        <button class="copy-button" (click)="copyRoomLink()">📋 Copy Link</button>
+        <div class="copy-button-container">
+          <button class="copy-button" (click)="copyRoomLink()">📋 Copy Link</button>
+          @if (showCopyTooltip) {
+            <div class="copy-tooltip">Copied!</div>
+          }
+        </div>
         <span class="participant-count">{{ participants().length }} participant(s)</span>
       </div>
       <div class="user-info">
@@ -48,4 +53,35 @@
       </div>
     </div>
   </section>
+
+
+  <!-- Room redirect alert -->
+  @if (showRoomRedirectAlert) {
+    <div class="alert-message">
+      <div class="alert-content">
+        <p>Oops! This room does not exist. You have been redirected to a new valid room.</p>
+        <button (click)="showRoomRedirectAlert = false">OK</button>
+      </div>
+    </div>
+  }
+
+  <!-- Username prompt -->
+  @if (showUsernamePrompt) {
+    <div class="alert-message">
+      <div class="alert-content">
+        <p>Enter your name:</p>
+        <div class="input-container">
+          <input
+            type="text"
+            [(ngModel)]="promptUsername"
+            placeholder="Your name"
+          />
+        </div>
+        <div class="button-container">
+          <button class="cancel-button" (click)="cancelUsernameChange()">Cancel</button>
+          <button (click)="confirmUsernameChange()">OK</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

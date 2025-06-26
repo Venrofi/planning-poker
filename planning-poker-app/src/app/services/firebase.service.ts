@@ -9,8 +9,24 @@ import { Participant } from '../models/participant.model';
 export class FirebaseService {
   constructor(private db: Database) { }
 
+  /**
+   * Validates if a room ID is properly formatted (UUID format)
+   * This prevents users from creating rooms with arbitrary names
+   */
+  isValidRoomId(roomId: string): boolean {
+    // UUID regex pattern (version 4)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidPattern.test(roomId);
+  }
+
   joinRoom(roomId: string, userId: string, username: string): Promise<boolean> {
     const MAX_ROOM_PARTICIPANTS = 10; // Maximum number of participants allowed in a room
+
+    // Check if the room ID is valid (UUID format)
+    if (!this.isValidRoomId(roomId)) {
+      console.warn('Invalid room ID format:', roomId);
+      return Promise.resolve(false);
+    }
 
     // First check and clean up any stale rooms in the database
     this.checkStaleRooms();

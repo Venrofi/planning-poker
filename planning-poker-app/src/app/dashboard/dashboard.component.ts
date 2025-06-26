@@ -24,6 +24,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   areCardsRevealed = signal<boolean>(false);
   isRevealInProgress = signal<boolean>(false);
+  showRoomRedirectAlert = false;
+  showUsernamePrompt = false;
+  promptUsername = '';
+  showCopyTooltip = false;
 
   participants = signal<Participant[]>([]);
 
@@ -52,32 +56,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.route.paramMap.subscribe(params => {
-      const roomId = params.get('id') || crypto.randomUUID();
-      this.roomId.set(roomId);
+      const providedRoomId = params.get('id');
+      const generatedRoomId = crypto.randomUUID();
 
-      if (!params.has('id')) {
-        this.router.navigate(['room', roomId]);
+      // If no ID provided, navigate to a new random room
+      if (!providedRoomId) {
+        this.roomId.set(generatedRoomId);
+        this.router.navigate(['room', generatedRoomId]);
         return;
       }
 
+      this.roomId.set(providedRoomId);
+
       // Join the room with the current user only
-      this.firebaseService.joinRoom(roomId, this.userId(), this.userName()).then(joined => {
+      this.firebaseService.joinRoom(providedRoomId, this.userId(), this.userName()).then(joined => {
         if (!joined) {
-          alert('Room is full! Maximum of 10 participants reached.');
-          // Could navigate away or show a message
+          // Room ID invalid or room is full - redirect to a new valid room
+          console.warn(`Unable to join room "${providedRoomId}". Creating a new room.`);
+          this.showRoomRedirectAlert = true;
+          this.roomId.set(generatedRoomId);
+          this.router.navigate(['room', generatedRoomId]);
           return;
         }
 
-        this.firebaseService.setupPresence(roomId, this.userId());
-        this.firebaseService.cleanupRoom(roomId);
+        this.firebaseService.setupPresence(this.roomId(), this.userId());
+        this.firebaseService.cleanupRoom(this.roomId());
 
-        this.titleSubscription = this.firebaseService.getRoomTitle(roomId).subscribe(title => {
+        this.titleSubscription = this.firebaseService.getRoomTitle(this.roomId()).subscribe(title => {
           if (title) {
             this.roomTitle.set(title);
           }
         });
 
-        this.firebaseService.getParticipants(roomId).subscribe(participants => {
+        this.firebaseService.getParticipants(this.roomId()).subscribe(participants => {
           if (participants && participants.length > 0) {
             // Room has participants, update the UI
             this.participants.set(participants);
@@ -165,13 +176,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
   copyRoomLink(): void {
     const url = window.location.href;
     navigator.clipboard.writeText(url)
-      .then(() => alert('Room link copied to clipboard!'))
+      .then(() => {
+        this.showCopyTooltip = true;
+        // Hide tooltip after 2 seconds
+        setTimeout(() => {
+          this.showCopyTooltip = false;
+        }, 1000);
+      })
       .catch(err => console.error('Failed to copy room link:', err));
   }
 
   promptForUserName(): void {
     const defaultName = localStorage.getItem('planningPokerUserName') || '';
-    const userName = prompt('Enter your name:', defaultName);
+    this.promptUsername = defaultName;
+    this.showUsernamePrompt = true;
+  }
+
+  confirmUsernameChange(): void {
+    const userName = this.promptUsername;
 
     if (userName && userName.trim()) {
       this.userName.set(userName.trim());
@@ -187,6 +209,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
           });
       }
     }
+
+    this.showUsernamePrompt = false;
+    this.promptUsername = '';
+  }
+
+  cancelUsernameChange(): void {
+    this.showUsernamePrompt = false;
+    this.promptUsername = '';
   }
 
   ngOnDestroy(): void {
