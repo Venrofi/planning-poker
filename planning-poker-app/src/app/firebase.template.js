@@ -12,4 +12,8 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID",
 };
 
-export default firebaseConfig;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+export { app, database };
