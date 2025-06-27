@@ -1,9 +1,9 @@
 <div class="participant">
-  <app-card
+  <app-poker-card
     [value]="participant().selectedCard || '?'"
     [revealed]="participant().isRevealed"
     [selected]="!!participant().selectedCard">
-  </app-card>
+  </app-poker-card>
   <div class="participant-name">
     {{ participant().name }}
     @if (participant().isAdmin) {

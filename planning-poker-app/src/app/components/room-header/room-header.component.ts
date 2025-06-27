@@ -5,13 +5,13 @@ import { Participant } from '../../models/participant.model';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-header',
+  selector: 'app-room-header',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+  templateUrl: './room-header.component.html',
+  styleUrl: './room-header.component.scss'
 })
-export class HeaderComponent {
+export class RoomHeaderComponent {
   @Input() roomTitle: string = '';
   @Input() participants: Participant[] = [];
   @Input() roomId: string = '';

@@ -1,5 +1,5 @@
 <div class="dashboard">
-  <app-header
+  <app-room-header
     [roomTitle]="roomTitle()"
     [participants]="participants()"
     [roomId]="roomId()"
@@ -7,7 +7,7 @@
     (roomTitleChange)="updateRoomTitle($event)"
     (createNewRoom)="createNewRoom()"
     (promptForUserName)="promptForUserName()">
-  </app-header>
+  </app-room-header>
   <main>
     <app-poker-table
       [participants]="participants()"
@@ -27,13 +27,13 @@
         [class.disabled]="areCardsRevealed() || isRevealInProgress()"
         [attr.aria-disabled]="areCardsRevealed() || isRevealInProgress()">
         @for (card of cards(); track card) {
-          <app-card
+          <app-poker-card
             [value]="card"
             [selected]="selectedCard() === card"
             [revealed]="true"
             [disabled]="areCardsRevealed() || isRevealInProgress()"
             (click)="handleCardClick(card)">
-          </app-card>
+          </app-poker-card>
         }
       </div>
     </div>

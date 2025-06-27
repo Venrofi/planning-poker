@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CardComponent } from './card.component';
+import { PokerCardComponent } from './poker-card.component';
 import { By } from '@angular/platform-browser';
 import { Card } from '../../models/cards.model';
 
-describe('CardComponent', () => {
-  let component: CardComponent;
-  let fixture: ComponentFixture<CardComponent>;
+describe('PokerCardComponent', () => {
+  let component: PokerCardComponent;
+  let fixture: ComponentFixture<PokerCardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CardComponent]
+      imports: [PokerCardComponent]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CardComponent);
+    fixture = TestBed.createComponent(PokerCardComponent);
     component = fixture.componentInstance;
 
     // Set default values for testing using the defineProperty approach for Angular v20 input signals

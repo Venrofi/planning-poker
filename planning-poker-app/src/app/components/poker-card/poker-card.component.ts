@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Card } from '../../models/cards.model';
 
 @Component({
-  selector: 'app-card',
+  selector: 'app-poker-card',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './card.component.html',
-  styleUrls: ['./card.component.scss']
+  templateUrl: './poker-card.component.html',
+  styleUrls: ['./poker-card.component.scss']
 })
-export class CardComponent {
+export class PokerCardComponent {
   value = input<Card>('?');
   selected = input<boolean>(false);
   revealed = input<boolean>(false);

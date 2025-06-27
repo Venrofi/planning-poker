@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './dashboard/dashboard.component';
+import { RoomComponent } from './components/room/room.component';
 
 export const routes: Routes = [
-  { path: '', component: DashboardComponent },
-  { path: 'room/:id', component: DashboardComponent },
+  { path: '', component: RoomComponent },
+  { path: 'room/:id', component: RoomComponent },
   { path: '**', redirectTo: '' }
 ];
