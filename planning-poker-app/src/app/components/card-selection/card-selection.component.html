@@ -1,0 +1,20 @@
+<section class="card-selection">
+  <h2 class="card-selection-header">
+    {{ headerText() }}
+  </h2>
+  <div class="card-selection-content">
+    <div class="cards"
+      [class.disabled]="isDisabled()"
+      [attr.aria-disabled]="isDisabled()">
+      @for (card of cards(); track card) {
+        <app-poker-card
+          [value]="card"
+          [selected]="selectedCard() === card"
+          [revealed]="true"
+          [disabled]="isDisabled()"
+          (click)="onCardClick(card)">
+        </app-poker-card>
+      }
+    </div>
+  </div>
+</section>

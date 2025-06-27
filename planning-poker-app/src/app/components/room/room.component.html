@@ -4,73 +4,61 @@
     [participants]="participants()"
     [roomId]="roomId()"
     [userName]="userName()"
-    (roomTitleChange)="updateRoomTitle($event)"
-    (createNewRoom)="createNewRoom()"
-    (promptForUserName)="promptForUserName()">
+    (roomTitleChange)="roomStateService.updateTitle($event, roomId())"
+    (createNewRoom)="roomNavigationService.createNewRoom()"
+    (promptForUserName)="userSessionService.promptForUserName()">
   </app-room-header>
+
   <main>
     <app-poker-table
       [participants]="participants()"
       [roomId]="roomId()"
       [currentUserId]="userId()"
-      [isCurrentUserAdmin]="isCurrentUserAdmin()"
-      (participantsChange)="updateParticipants($event)"
-      (isRevealInProgressChange)="isRevealInProgress.set($event)">
+      [isCurrentUserAdmin]="roomStateService.isCurrentUserAdmin()"
+      (participantsChange)="roomStateService.updateParticipants($event)"
+      (isRevealInProgressChange)="roomStateService.setRevealInProgress($event)">
     </app-poker-table>
   </main>
-  <section class="card-selection">
-    <h2 class="card-selection-header">
-      {{ areCardsRevealed() || isRevealInProgress() ? 'Cards Locked' : 'Pick a Card!' }}
-    </h2>
-    <div class="card-selection-content">
-      <div class="cards"
-        [class.disabled]="areCardsRevealed() || isRevealInProgress()"
-        [attr.aria-disabled]="areCardsRevealed() || isRevealInProgress()">
-        @for (card of cards(); track card) {
-          <app-poker-card
-            [value]="card"
-            [selected]="selectedCard() === card"
-            [revealed]="true"
-            [disabled]="areCardsRevealed() || isRevealInProgress()"
-            (click)="handleCardClick(card)">
-          </app-poker-card>
-        }
-      </div>
-    </div>
-  </section>
 
-  @if (showRoomRedirectAlert) {
+  <app-card-selection
+    [cards]="cards()"
+    [selectedCard]="selectedCard()"
+    [isDisabled]="areCardsRevealed() || isRevealInProgress()"
+    (cardClick)="handleCardClick($event)">
+  </app-card-selection>
+
+  @if (showRoomRedirectAlert()) {
     <div class="alert-message">
       <div class="alert-content">
         <p>Oops! This room does not exist. You have been redirected to a new valid room.</p>
-        <button (click)="showRoomRedirectAlert = false">OK</button>
+        <button (click)="roomNavigationService.dismissRoomRedirectAlert()">OK</button>
       </div>
     </div>
   }
 
-  @if (showUsernamePrompt) {
+  @if (showUsernamePrompt()) {
     <div class="alert-message">
       <div class="alert-content">
         <p>Enter the game!</p>
         <div class="input-container">
           <input
             type="text"
-            [(ngModel)]="promptUsername"
-            placeholder="Your name"
-          />
+            [ngModel]="promptUsername()"
+            (ngModelChange)="userSessionService.promptUsername.set($event)"
+            placeholder="Your name"/>
         </div>
         <div class="button-container">
-          <button class="cancel-button" (click)="cancelUsernameChange()">Cancel</button>
-          <button (click)="confirmUsernameChange()">OK</button>
+          <button class="cancel-button" (click)="userSessionService.cancelUsernameChange()">Cancel</button>
+          <button (click)="userSessionService.confirmUsernameChange(roomId())">OK</button>
         </div>
       </div>
     </div>
   }
 
   <app-room-notifications
-    [notificationData]="notifications"
-    (dismissUserLeft)="dismissUserLeftNotification()"
-    (dismissAdminTransfer)="dismissAdminTransferNotification()"
-    (dismissNewAdmin)="dismissNewAdminNotification()">
+    [notificationData]="notifications()"
+    (dismissUserLeft)="notificationService.dismissUserLeft()"
+    (dismissAdminTransfer)="notificationService.dismissAdminTransfer()"
+    (dismissNewAdmin)="notificationService.dismissNewAdmin()">
   </app-room-notifications>
 </div>
