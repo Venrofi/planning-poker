@@ -1,0 +1,268 @@
+@use '../../../app/styles/animations' as animations;
+
+.table-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  padding: 8px;
+  max-width: 75%;
+  margin: 0 auto;
+}
+
+.poker-table {
+  grid-area: 2 / 2 / 4 / 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-block: 50px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 100px;
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.15),
+    inset 0 0 30px rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  overflow: visible;
+  position: relative;
+  min-height: 200px;
+
+  .table-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .countdown {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 20px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: rgba(125, 75, 255, 0.7);
+    backdrop-filter: blur(8px);
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    min-width: 120px;
+    text-align: center;
+    @include animations.pulse-scale;
+  }
+
+  .voting-controls {
+    display: flex;
+    gap: 20px;
+    z-index: 5;
+
+    button {
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.5px;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: all 0.6s;
+      }
+
+      &:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow:
+          0 15px 25px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+        &::before {
+          left: 100%;
+        }
+      }
+
+      &:active {
+        transform: translateY(1px) scale(0.98);
+      }
+    }
+
+    .reveal-btn {
+      background: rgba(125, 75, 255, 0.8);
+      color: white;
+      backdrop-filter: blur(10px);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .reset-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      backdrop-filter: blur(10px);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .admin-info {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    font-size: 12px;
+    font-weight: 400;
+    color: white;
+    text-align: center;
+    letter-spacing: 0.2px;
+    opacity: 0.7;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 70%
+    );
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+    z-index: -2;
+    filter: blur(5px);
+  }
+}
+
+.participant-position-5, .participant-position-6 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.participant-position-5 {
+  grid-area: 2 / 1 / 4 / 2;
+}
+.participant-position-6 {
+  grid-area: 2 / 4 / 4 / 5;
+}
+
+.voting-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  padding: 14px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  margin-left: 15px;
+  position: relative;
+  overflow: hidden;
+  @include animations.fade-in-slide-up;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.1) 5%,
+      transparent 80%
+    );
+    z-index: 0;
+  }
+
+  .winner-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .winner-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.countdown-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.countdown-initiator {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
+  @include animations.fade-in-slide-up;
+}
+
+.reset-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-message {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  background-color: rgba(226, 68, 54, 0.5);
+  padding: 12px 24px;
+  border-radius: 20px;
+  @include animations.pulse-alternate;
+}

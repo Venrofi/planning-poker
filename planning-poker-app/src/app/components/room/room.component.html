@@ -1,0 +1,64 @@
+<div class="room">
+  <app-room-header
+    [roomTitle]="roomTitle()"
+    [participants]="participants()"
+    [roomId]="roomId()"
+    [userName]="userName()"
+    (roomTitleChange)="roomStateService.updateTitle($event, roomId())"
+    (createNewRoom)="roomNavigationService.createNewRoom()"
+    (promptForUserName)="userSessionService.promptForUserName()">
+  </app-room-header>
+
+  <main>
+    <app-poker-table
+      [participants]="participants()"
+      [roomId]="roomId()"
+      [currentUserId]="userId()"
+      [isCurrentUserAdmin]="roomStateService.isCurrentUserAdmin()"
+      (participantsChange)="roomStateService.updateParticipants($event)"
+      (isRevealInProgressChange)="roomStateService.setRevealInProgress($event)">
+    </app-poker-table>
+  </main>
+
+  <app-card-selection
+    [cards]="cards()"
+    [selectedCard]="selectedCard()"
+    [isDisabled]="areCardsRevealed() || isRevealInProgress()"
+    (cardClick)="handleCardClick($event)">
+  </app-card-selection>
+
+  @if (showRoomRedirectAlert()) {
+    <div class="alert-message">
+      <div class="alert-content">
+        <p>Oops! This room does not exist. You have been redirected to a new valid room.</p>
+        <button (click)="roomNavigationService.dismissRoomRedirectAlert()">OK</button>
+      </div>
+    </div>
+  }
+
+  @if (showUsernamePrompt()) {
+    <div class="alert-message">
+      <div class="alert-content">
+        <p>Enter the game!</p>
+        <div class="input-container">
+          <input
+            type="text"
+            [ngModel]="promptUsername()"
+            (ngModelChange)="userSessionService.promptUsername.set($event)"
+            placeholder="Your name"/>
+        </div>
+        <div class="button-container">
+          <button class="cancel-button" (click)="userSessionService.cancelUsernameChange()">Cancel</button>
+          <button (click)="userSessionService.confirmUsernameChange(roomId())">OK</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <app-room-notifications
+    [notificationData]="notifications()"
+    (dismissUserLeft)="notificationService.dismissUserLeft()"
+    (dismissAdminTransfer)="notificationService.dismissAdminTransfer()"
+    (dismissNewAdmin)="notificationService.dismissNewAdmin()">
+  </app-room-notifications>
+</div>

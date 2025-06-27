@@ -1,0 +1,221 @@
+// Gradient background animation for main room background
+@keyframes gradientBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+// Alert shine animation for button highlighting
+@keyframes alertShine {
+  0% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(255, 165, 0, 0.8), 0 0 30px rgba(255, 165, 0, 0.6); }
+  100% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.5); }
+}
+
+// Position-based shine animation for elements
+@keyframes positionShine {
+  0% { left: -100%; }
+  20% { left: 100%; }
+  100% { left: 100%; }
+}
+
+// Slide in from right animation for notifications
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Shine animation for buttons and interactive elements
+@keyframes shine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+// Tooltip fade in animation
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Tooltip fade in animation with horizontal centering
+@keyframes tooltipFadeInCentered {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+// Pulse animation for loading states and attention-grabbing elements
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+// Fade in animation for general content appearing
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Fade in with slide up animation for poker table elements
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Pulse scale animation for poker table elements
+@keyframes pulseScale {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+// Pulse opacity animation variant for different use cases
+@keyframes pulseAlternate {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+// =============================================================================
+
+// Common transition durations
+$transition-fast: 0.2s;
+$transition-normal: 0.3s;
+$transition-slow: 0.4s;
+$transition-very-slow: 0.6s;
+$transition-extra-slow: 0.8s;
+
+// Common easing functions
+$ease-out-cubic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+$ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// Transition mixins
+@mixin transition-all-fast {
+  transition: all $transition-fast ease;
+}
+
+@mixin transition-all-normal {
+  transition: all $transition-normal ease;
+}
+
+@mixin transition-transform {
+  transition: transform $transition-normal ease;
+}
+
+@mixin transition-transform-slow {
+  transition: transform $transition-slow ease, filter $transition-slow ease;
+}
+
+@mixin transition-card {
+  transition: transform $transition-extra-slow $ease-bounce;
+}
+
+@mixin transition-button {
+  transition: transform $transition-fast, box-shadow $transition-fast;
+}
+
+@mixin transition-expand {
+  transition: max-height $transition-slow ease, opacity $transition-normal ease, transform $transition-normal ease;
+}
+
+// =============================================================================
+
+// Apply gradient background animation
+@mixin animated-gradient-bg {
+  background: linear-gradient(135deg, #4338ca, #6d28d9, #a855f7);
+  background-size: 400% 400%;
+  animation: gradientBackground 15s ease infinite;
+}
+
+// Apply shine effect to buttons
+@mixin shine-effect {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shine 1.5s ease-in-out;
+}
+
+// Apply slide in from right animation
+@mixin slide-in-right {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+// Apply pulse animation
+@mixin pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+// Apply fade in animation
+@mixin fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+// Apply fade in with slide up animation
+@mixin fade-in-slide-up {
+  animation: fadeInSlideUp 0.5s ease-in-out;
+}
+
+// Apply pulse scale animation
+@mixin pulse-scale {
+  animation: pulseScale 1s infinite;
+}
+
+// Apply position-based shine effect to elements
+@mixin position-shine {
+  animation: positionShine 3s infinite;
+}
+
+// Apply tooltip fade in with centering
+@mixin tooltip-fade-in-centered {
+  animation: tooltipFadeInCentered 0.3s ease-in-out;
+}
+
+// Apply pulse opacity animation with alternate timing
+@mixin pulse-alternate {
+  animation: pulseAlternate 0.8s infinite alternate;
+}
+
+// Hover transform effects
+@mixin hover-lift {
+  &:hover {
+    transform: translateY(-10px) scale(1.03);
+  }
+}
+
+@mixin hover-lift-small {
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@mixin hover-scale {
+  &:hover {
+    transform: scale(1.05);
+  }
+}

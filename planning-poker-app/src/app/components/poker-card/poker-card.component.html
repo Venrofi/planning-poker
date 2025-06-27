@@ -1,0 +1,10 @@
+<div class="card" [class.selected]="selected()" [class.revealed]="revealed()" [class.disabled]="disabled()">
+  <div class="card-inner">
+    <div class="card-front">
+      <span class="card-value">{{ value() }}</span>
+    </div>
+    <div class="card-back">
+      <div class="card-pattern"></div>
+    </div>
+  </div>
+</div>

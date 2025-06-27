@@ -1,27 +1,84 @@
-# PlanningPoker
+# Planning Poker App
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.1.4.
+A real-time collaborative estimation tool built with Angular 18 and Firebase.
 
-## Development server
+## Quick Start
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+npm install
+npm start
+```
 
-## Code scaffolding
+The app will be available at `http://localhost:4200/`
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Prerequisites
 
-## Build
+- Node.js 20 or higher
+- Firebase project (for real-time functionality)
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Firebase Setup
 
-## Running unit tests
+1. **Create Firebase Project**
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project
+   - Register a web application
 
-## Running end-to-end tests
+2. **Enable Realtime Database**
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+   - In Firebase console, go to "Realtime Database"
+   - Create database and set rules:
 
-## Further help
+   ```json
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+   ```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+   ⚠️ **Note**: These are permissive rules for development. Use proper security rules for production.
+
+3. **Configure Environment**
+
+   - Copy `src/environments/environment.template.ts` to `src/environments/environment.ts`
+   - Add your Firebase config:
+
+   ```typescript
+   export const environment = {
+     production: false,
+     firebase: {
+       apiKey: "your-api-key",
+       authDomain: "your-project.firebaseapp.com",
+       databaseURL: "https://your-project.firebaseio.com",
+       projectId: "your-project-id",
+       storageBucket: "your-project.appspot.com",
+       messagingSenderId: "123456789",
+       appId: "your-app-id",
+     },
+   };
+   ```
+
+## Development
+
+| Command         | Description              |
+| --------------- | ------------------------ |
+| `npm start`     | Start development server |
+| `npm run build` | Build for production     |
+| `npm test`      | Run unit tests           |
+| `npm run lint`  | Run linting              |
+
+## Architecture
+
+- **Standalone Components**: Modern Angular architecture
+- **Signal-based State**: Reactive state management
+- **Service Layer**: Clean separation of concerns
+- **Real-time Sync**: Firebase Realtime Database integration
+
+## Key Services
+
+- `RoomStateService` - Manages room state and participants
+- `PokerService` - Handles voting and card selection logic
+- `UserSessionService` - User authentication and session management
+- `NotificationService` - Real-time notifications and alerts

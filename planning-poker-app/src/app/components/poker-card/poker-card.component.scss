@@ -1,0 +1,123 @@
+// Card variables
+$card-width: 80px;
+$card-height: 120px;
+$card-radius: 16px;
+$white-overlay: rgba(255, 255, 255, 0.65);
+$card-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+$transition-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+.card {
+  width: $card-width;
+  height: $card-height;
+  perspective: 1000px;
+  transition: transform 0.4s ease, filter 0.4s ease;
+  transform-origin: center bottom;
+
+  &.selected {
+    transform: translateY(-15px) scale(1.05);
+    filter: drop-shadow(0 15px 15px rgba(0, 0, 0, 0.15));
+  }
+  &.disabled {
+    cursor: not-allowed;
+    filter: grayscale(0.3) opacity(0.7);
+    transform: none;
+    pointer-events: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  // Common shared properties for front and back faces
+  &-front, &-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: $card-radius;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s $transition-bounce;
+    transform-style: preserve-3d;
+    border-radius: $card-radius;
+
+    .revealed & { transform: rotateY(180deg); }
+  }
+
+  &-front {
+    background: $white-overlay;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+      inset 0 0 20px rgba(255, 255, 255, 0.5),
+      0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: rotateY(180deg);
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: rotate(25deg);
+      pointer-events: none;
+    }
+  }
+
+  &-back {
+    transform: rotateY(0deg);
+    background: $card-gradient;
+    box-shadow:
+      0 5px 15px rgba(0, 0, 0, 0.2),
+      inset 0 0 15px rgba(255, 255, 255, 0.3);
+  }
+
+  &-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    position: relative;
+    z-index: 2;
+  }
+
+  &-pattern {
+    width: 70%;
+    height: 70%;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0.3) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.8) 1px,
+        transparent 2px
+      );
+      background-size: 10px 10px;
+      opacity: 0.7;
+    }
+  }
+}

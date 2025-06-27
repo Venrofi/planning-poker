@@ -40,3 +40,25 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Environment files
+src/environments/environment.ts
+/src/environments/environment.ts
+environment.ts
+src/environments/environment.*.ts
+/src/environments/environment.*.ts
+environment.*.ts
+!src/environments/environment.template.ts
+!environment.template.ts
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Firebase cache and logs
+.firebase/
+*-debug.log
+/.firebaserc
+firebase-debug.log
+ui-debug.log
