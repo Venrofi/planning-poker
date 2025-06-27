@@ -10,7 +10,7 @@ export class ParticipantService {
   private db = inject(Database);
 
   joinRoom(roomId: string, userId: string, username: string): Promise<boolean> {
-    const MAX_ROOM_PARTICIPANTS = 10; // Maximum number of participants allowed in a room
+    const MAX_ROOM_PARTICIPANTS = 10;
 
     // Check for existing participant with this userId
     const participantRef = ref(this.db, `rooms/${roomId}/participants/${userId}`);
@@ -28,11 +28,9 @@ export class ParticipantService {
           Object.keys(participantsSnapshot.val()).length : 0;
 
         if (participantCount >= MAX_ROOM_PARTICIPANTS) {
-          console.warn('Room is full, cannot join:', roomId);
-          return false; // Room is full
+          return false;
         }
 
-        // First participant becomes admin
         const isAdmin = participantCount === 0;
 
         // Add the participant
@@ -43,7 +41,7 @@ export class ParticipantService {
           isRevealed: false,
           isAdmin: isAdmin
         });
-        return true; // Success
+        return true;
       });
     });
   }
@@ -86,8 +84,6 @@ export class ParticipantService {
       remove(presenceRef)
     ])
       .then(() => {
-        console.log(`Participant ${userId} removed from room ${roomId}`);
-
         // Check if this was the last participant
         return Promise.all([
           get(ref(this.db, `rooms/${roomId}/participants`)),
@@ -103,7 +99,6 @@ export class ParticipantService {
 
         if (!hasParticipants && !hasPresence) {
           // No participants and no presence left, delete the room immediately
-          console.log(`Room ${roomId} is now empty, deleting immediately`);
           return remove(roomRef);
         }
         return Promise.resolve();
@@ -136,8 +131,6 @@ export class ParticipantService {
 
         // Create a server value that will be evaluated when the disconnect happens
         onDisconnect(participantRef).set(null).then(() => {
-          console.log('Set up participant cleanup on disconnect');
-
           // We need to manually check for the last participant
           // This runs a server-side check when the client disconnects
           const checkLastParticipantRef = ref(this.db, `rooms/${roomId}/lastParticipantCheck/${userId}`);
@@ -148,14 +141,11 @@ export class ParticipantService {
               // Set up a listener that will check when this node appears
               onValue(checkLastParticipantRef, (checkSnapshot) => {
                 if (checkSnapshot.exists()) {
-                  console.log(`Last participant check triggered for ${userId}`);
-
                   // Check if there are any participants left
                   get(participantsRef).then(participantsSnapshot => {
                     if (!participantsSnapshot.exists() ||
                       Object.keys(participantsSnapshot.val() || {}).length === 0) {
                       // No participants left, delete the room immediately
-                      console.log(`Room ${roomId} is now empty after disconnect, deleting immediately`);
                       remove(roomRef);
                     }
 
@@ -193,7 +183,6 @@ export class ParticipantService {
       }
 
       await update(participantsRef, updates);
-      console.log(`Admin role transferred to participant: ${newAdminId}`);
       return true;
     } catch (error) {
       console.error('Error transferring admin role:', error);

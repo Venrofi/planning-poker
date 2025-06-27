@@ -1,11 +1,10 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PokerTableComponent } from './poker-table.component';
-import { ParticipantComponent } from '../participant/participant.component';
 import { Component, Input } from '@angular/core';
-import { Participant } from '../../models/participant.model';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { Participant } from '../../models/participant.model';
+import { ParticipantComponent } from '../participant/participant.component';
+import { PokerTableComponent } from './poker-table.component';
 
-// Mock the ParticipantComponent
 @Component({
   selector: 'app-participant',
   template: '<div data-testid="participant"></div>'
@@ -18,7 +17,6 @@ describe('PokerTableComponent', () => {
   let component: PokerTableComponent;
   let fixture: ComponentFixture<PokerTableComponent>;
 
-  // Setup mock data
   const mockParticipants: Participant[] = [
     { id: '1', name: 'John', selectedCard: 'M', isRevealed: false },
     { id: '2', name: 'Jane', selectedCard: 'S', isRevealed: false }
@@ -37,7 +35,6 @@ describe('PokerTableComponent', () => {
     fixture = TestBed.createComponent(PokerTableComponent);
     component = fixture.componentInstance;
 
-    // Mock the participants input for testing
     Object.defineProperty(component, 'participants', {
       get: () => () => mockParticipants
     });
@@ -58,7 +55,6 @@ describe('PokerTableComponent', () => {
     });
 
     it('should identify the winning card when there is a single winner', () => {
-      // Setup: make all participants have the same card 'M' except one with 'S'
       const participantsWithWinner: Participant[] = [
         { id: '1', name: 'John', selectedCard: 'M', isRevealed: true },
         { id: '2', name: 'Jane', selectedCard: 'M', isRevealed: true },
@@ -66,7 +62,6 @@ describe('PokerTableComponent', () => {
         { id: '4', name: 'Alice', selectedCard: 'S', isRevealed: true }
       ];
 
-      // Override the participants getter
       Object.defineProperty(component, 'participants', {
         get: () => () => participantsWithWinner
       });
@@ -74,13 +69,11 @@ describe('PokerTableComponent', () => {
       component.areCardsRevealed.set(true);
       fixture.detectChanges();
 
-      // M should win with 3 votes
       expect(component.winningCard()).toContain('M');
       expect(component.winningCard()).toContain('3 votes');
     });
 
     it('should identify multiple winners in case of a tie', () => {
-      // Setup: make tie between 'M' and 'S'
       const participantsWithTie: Participant[] = [
         { id: '1', name: 'John', selectedCard: 'M', isRevealed: true },
         { id: '2', name: 'Jane', selectedCard: 'M', isRevealed: true },
@@ -88,7 +81,6 @@ describe('PokerTableComponent', () => {
         { id: '4', name: 'Alice', selectedCard: 'S', isRevealed: true }
       ];
 
-      // Override the participants getter
       Object.defineProperty(component, 'participants', {
         get: () => () => participantsWithTie
       });
@@ -96,13 +88,11 @@ describe('PokerTableComponent', () => {
       component.areCardsRevealed.set(true);
       fixture.detectChanges();
 
-      // Should mention both M and S
       expect(component.winningCard()).toContain('M / S');
       expect(component.winningCard()).toContain('2 votes each');
     });
 
     it('should handle participants with undefined cards', () => {
-      // Setup: some participants have not selected cards
       const participantsWithUndefined: Participant[] = [
         { id: '1', name: 'John', selectedCard: 'M', isRevealed: true },
         { id: '2', name: 'Jane', selectedCard: undefined, isRevealed: true },
@@ -110,7 +100,6 @@ describe('PokerTableComponent', () => {
         { id: '4', name: 'Alice', selectedCard: undefined, isRevealed: true }
       ];
 
-      // Override the participants getter
       Object.defineProperty(component, 'participants', {
         get: () => () => participantsWithUndefined
       });
@@ -118,7 +107,6 @@ describe('PokerTableComponent', () => {
       component.areCardsRevealed.set(true);
       fixture.detectChanges();
 
-      // M and S should each have 1 vote, resulting in a tie
       expect(component.winningCard()).toContain('M / S');
       expect(component.winningCard()).toContain('1 vote each');
     });

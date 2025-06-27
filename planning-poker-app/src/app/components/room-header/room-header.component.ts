@@ -1,8 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Participant } from '../../models/participant.model';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-room-header',
@@ -12,18 +11,16 @@ import { Router } from '@angular/router';
   styleUrl: './room-header.component.scss'
 })
 export class RoomHeaderComponent {
-  @Input() roomTitle: string = '';
+  @Input() roomId = '';
+  @Input() roomTitle = '';
+  @Input() userName = '';
   @Input() participants: Participant[] = [];
-  @Input() roomId: string = '';
-  @Input() userName: string = '';
 
   @Output() roomTitleChange = new EventEmitter<string>();
   @Output() promptForUserName = new EventEmitter<void>();
   @Output() createNewRoom = new EventEmitter<void>();
 
-  showCopyTooltip: boolean = false;
-
-  constructor(private router: Router) { }
+  showCopyTooltip = false;
 
   onRoomTitleChange(newTitle: string): void {
     this.roomTitleChange.emit(newTitle);
@@ -38,7 +35,7 @@ export class RoomHeaderComponent {
     navigator.clipboard.writeText(url)
       .then(() => {
         this.showCopyTooltip = true;
-        // Hide tooltip after 2 seconds
+
         setTimeout(() => {
           this.showCopyTooltip = false;
         }, 1000);

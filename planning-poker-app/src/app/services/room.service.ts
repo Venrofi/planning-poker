@@ -88,7 +88,6 @@ export class RoomService {
     const roomRef = ref(this.db, `rooms/${roomId}`);
     return remove(roomRef)
       .then(() => {
-        console.log(`Room ${roomId} deleted successfully`);
         return true;
       })
       .catch(error => {
@@ -125,7 +124,6 @@ export class RoomService {
             if (!hasParticipants && !hasPresence) {
               const roomRef = ref(this.db, `rooms/${roomId}`);
               remove(roomRef);
-              console.log(`Removed empty room during cleanup: ${roomId}`);
             }
 
             // Clean up old format flags if they exist
@@ -160,7 +158,6 @@ export class RoomService {
         get(participantsRef).then(participantsSnapshot => {
           if (!participantsSnapshot.exists() || Object.keys(participantsSnapshot.val() || {}).length === 0) {
             // Room is truly empty, delete it immediately
-            console.log(`Room ${roomId} is empty, deleting it immediately`);
             remove(roomRef);
           }
         });
@@ -174,7 +171,6 @@ export class RoomService {
         get(presenceRef).then(presenceSnapshot => {
           if (!presenceSnapshot.exists() || Object.keys(presenceSnapshot.val() || {}).length === 0) {
             // Room is truly empty, delete it immediately
-            console.log(`Room ${roomId} is empty (from participants check), deleting it immediately`);
             remove(roomRef);
           }
         });
