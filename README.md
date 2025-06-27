@@ -2,6 +2,8 @@
 
 A real-time collaborative estimation tool for agile development teams built with Angular and Firebase.
 
+![](./screenshot.png)
+
 ## Overview
 
 Planning Poker is a web application that helps development teams estimate user stories and tasks during sprint planning sessions. Team members can join virtual rooms, select estimation cards, and reach consensus on story points in real-time.
@@ -31,6 +33,8 @@ Planning Poker is a web application that helps development teams estimate user s
 ## Demo
 
 Create or join a room and start estimating with your team in seconds!
+
+Live Site available at: [planning-poker-venrofi.netlify.app/](https://planning-poker-venrofi.netlify.app/)
 
 ## License
 
