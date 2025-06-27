@@ -1,4 +1,4 @@
-@import '../../../app/styles/animations';
+@use '../../../app/styles/animations' as animations;
 
 .header {
   text-align: center;
@@ -79,7 +79,7 @@
         transparent
       );
       pointer-events: none;
-      @include position-shine;
+      @include animations.position-shine;
     }
 
     .title-input {
@@ -158,7 +158,7 @@
       font-size: 12px;
       white-space: nowrap;
       z-index: 100;
-      @include tooltip-fade-in-centered;
+      @include animations.tooltip-fade-in-centered;
 
       &::after {
         content: '';

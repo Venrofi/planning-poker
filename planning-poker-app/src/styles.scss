@@ -1,5 +1,5 @@
+@use './app/styles/animations' as animations;
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import './app/styles/animations';
 
 * {
   margin: 0;
@@ -20,7 +20,7 @@ html, body {
   overflow-x: hidden;
   font-family: 'Inter', sans-serif, system-ui;
   color: #fff;
-  @include animated-gradient-bg;
+  @include animations.animated-gradient-bg;
 }
 
 /* Glassmorphism Utilities */
@@ -115,7 +115,7 @@ button {
       transparent
     );
     pointer-events: none;
-    @include position-shine;
+    @include animations.position-shine;
   }
 
   p {

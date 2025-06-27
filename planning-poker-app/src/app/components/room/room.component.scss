@@ -1,4 +1,4 @@
-@import '../../../app/styles/animations';
+@use '../../../app/styles/animations' as animations;
 
 .room {
   min-height: 100vh;
@@ -7,7 +7,7 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  @include animated-gradient-bg;
+  @include animations.animated-gradient-bg;
 
   &::before {
     content: '';

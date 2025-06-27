@@ -1,11 +1,11 @@
-@import '../../../app/styles/animations';
+@use '../../../app/styles/animations' as animations;
 
 .notification-popup {
   position: fixed;
   right: 20px;
   z-index: 1000;
   top: 20px;
-  @include slide-in-right;
+  @include animations.slide-in-right;
 
   &.user-left {
     top: 20px;
