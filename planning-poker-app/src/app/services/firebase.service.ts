@@ -10,13 +10,27 @@ export class FirebaseService {
   constructor(private db: Database) { }
 
   /**
-   * Validates if a room ID is properly formatted (UUID format)
+   * Validates if a room ID is properly formatted (short UUID-style format)
    * This prevents users from creating rooms with arbitrary names
    */
   isValidRoomId(roomId: string): boolean {
-    // UUID regex pattern (version 4)
-    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidPattern.test(roomId);
+    // Short UUID-style pattern: 8 characters, alphanumeric
+    const shortIdPattern = /^[0-9a-f]{8}$/i;
+    return shortIdPattern.test(roomId);
+  }
+
+  /**
+   * Generates a short room ID (8 characters, hex format)
+   * Much shorter than full UUID but still random and unique enough
+   */
+  generateShortRoomId(): string {
+    // Generate 8 random hex characters
+    const chars = '0123456789abcdef';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
 
   joinRoom(roomId: string, userId: string, username: string): Promise<boolean> {

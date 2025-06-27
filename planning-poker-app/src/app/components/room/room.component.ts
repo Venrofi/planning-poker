@@ -65,7 +65,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
         this.routeSubscription = this.route.paramMap.subscribe(params => {
             const providedRoomId = params.get('id');
-            const generatedRoomId = crypto.randomUUID();
+            const generatedRoomId = this.firebaseService.generateShortRoomId();
 
             // If no ID provided, navigate to a new random room
             if (!providedRoomId) {
@@ -82,10 +82,11 @@ export class RoomComponent implements OnInit, OnDestroy {
                     // Room ID invalid or room is full - redirect to a new valid room
                     console.warn(`Unable to join room "${providedRoomId}". Creating a new room.`);
                     this.showRoomRedirectAlert = true;
-                    this.roomId.set(generatedRoomId);
+                    const newGeneratedRoomId = this.firebaseService.generateShortRoomId();
+                    this.roomId.set(newGeneratedRoomId);
                     // Force component reload for consistency
                     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-                        this.router.navigate(['room', generatedRoomId]);
+                        this.router.navigate(['room', newGeneratedRoomId]);
                     });
                     return;
                 }
@@ -290,7 +291,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
 
     async createNewRoom(): Promise<void> {
-        const newRoomId = crypto.randomUUID();
+        const newRoomId = this.firebaseService.generateShortRoomId();
         await this.navigateToRoomWithCleanup(newRoomId);
     }
 
