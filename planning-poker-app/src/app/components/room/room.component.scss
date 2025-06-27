@@ -1,13 +1,13 @@
+@import '../../../app/styles/animations';
+
 .room {
   min-height: 100vh;
   padding: 30px;
-  background: linear-gradient(135deg, #4338ca, #6d28d9, #a855f7);
-  background-size: 400% 400%;
-  animation: gradientBackground 15s ease infinite;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  @include animated-gradient-bg;
 
   &::before {
     content: '';
@@ -35,12 +35,6 @@
     opacity: 0.5;
     pointer-events: none;
   }
-}
-
-@keyframes gradientBackground {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 main {

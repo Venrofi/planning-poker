@@ -1,9 +1,11 @@
+@import '../../../app/styles/animations';
+
 .notification-popup {
   position: fixed;
   right: 20px;
   z-index: 1000;
-  animation: slideInFromRight 0.3s ease-out;
   top: 20px;
+  @include slide-in-right;
 
   &.user-left {
     top: 20px;
@@ -81,16 +83,5 @@
         color: #333;
       }
     }
-  }
-}
-
-@keyframes slideInFromRight {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
   }
 }
