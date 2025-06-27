@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = './planning-poker-app/src/environments/environment.ts';
+const path = './src/environments/environment.ts';
 
 const envFile = `export const environment = {
   production: true,
@@ -16,4 +16,3 @@ const envFile = `export const environment = {
 `;
 
 fs.writeFileSync(path, envFile);
-
