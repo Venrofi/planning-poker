@@ -62,12 +62,12 @@ The app will be available at `http://localhost:4200/`
 
 ## Development
 
-| Command         | Description              |
-| --------------- | ------------------------ |
-| `npm start`     | Start development server |
-| `npm run build` | Build for production     |
-| `npm test`      | Run unit tests           |
-| `npm run lint`  | Run linting              |
+| Command              | Description              |
+|----------------------| ------------------------ |
+| `npm start`          | Start development server |
+| `npm run build-prod` | Build for production     |
+| `npm test`           | Run unit tests           |
+| `npm run lint`       | Run linting              |
 
 ## Architecture
 
