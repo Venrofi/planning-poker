@@ -6,8 +6,37 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
 </head>
 <body>
+  <div class="device-overlay">
+    <div class="overlay-content">
+      <div class="overlay-icon">💻</div>
+      <h1 class="overlay-title">Desktop Required</h1>
+      <p class="overlay-message">
+        Planning Poker is optimized for desktop devices to provide the best collaborative experience.
+      </p>
+      <div class="overlay-requirements">
+        <div class="requirement-title">Minimum Requirements:</div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Screen width: 1200px or larger</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Desktop device</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Modern web browser</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <app-root></app-root>
 </body>
 </html>
