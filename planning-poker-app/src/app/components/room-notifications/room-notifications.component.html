@@ -1,0 +1,29 @@
+@if (notificationData.showUserLeftNotification) {
+  <div class="notification-popup user-left">
+    <div class="notification-content">
+      <span class="notification-icon">👋</span>
+      <p>{{ notificationData.userLeftMessage }}</p>
+      <button class="notification-close" (click)="onDismissUserLeft()">×</button>
+    </div>
+  </div>
+}
+
+@if (notificationData.showAdminTransferNotification) {
+  <div class="notification-popup admin-transfer">
+    <div class="notification-content">
+      <span class="notification-icon">👑</span>
+      <p>{{ notificationData.adminTransferMessage }}</p>
+      <button class="notification-close" (click)="onDismissAdminTransfer()">×</button>
+    </div>
+  </div>
+}
+
+@if (notificationData.showNewAdminNotification) {
+  <div class="notification-popup new-admin">
+    <div class="notification-content">
+      <span class="notification-icon">🎉</span>
+      <p>{{ notificationData.newAdminMessage }}</p>
+      <button class="notification-close" (click)="onDismissNewAdmin()">×</button>
+    </div>
+  </div>
+}

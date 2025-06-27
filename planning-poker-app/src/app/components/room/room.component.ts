@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PokerTableComponent } from '../poker-table/poker-table.component';
 import { PokerCardComponent } from '../poker-card/poker-card.component';
 import { RoomHeaderComponent } from '../room-header/room-header.component';
+import { RoomNotificationsComponent, NotificationData } from '../room-notifications/room-notifications.component';
 import { Participant } from '../../models/participant.model';
 import { Card } from '../../models/cards.model';
 import { RoomService } from '../../services/room.service';
@@ -15,7 +16,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [CommonModule, FormsModule, PokerTableComponent, PokerCardComponent, RoomHeaderComponent],
+  imports: [CommonModule, FormsModule, PokerTableComponent, PokerCardComponent, RoomHeaderComponent, RoomNotificationsComponent],
   templateUrl: './room.component.html',
   styleUrl: './room.component.scss'
 })
@@ -31,14 +32,14 @@ export class RoomComponent implements OnInit, OnDestroy {
   showUsernamePrompt = false;
   promptUsername = '';
 
-  showUserLeftNotification = false;
-  userLeftMessage = '';
-
-  showAdminTransferNotification = false;
-  adminTransferMessage = '';
-
-  showNewAdminNotification = false;
-  newAdminMessage = '';
+  notifications: NotificationData = {
+    showUserLeftNotification: false,
+    userLeftMessage: '',
+    showAdminTransferNotification: false,
+    adminTransferMessage: '',
+    showNewAdminNotification: false,
+    newAdminMessage: ''
+  };
 
   participants = signal<Participant[]>([]);
   private previousParticipants: Participant[] = [];
@@ -290,9 +291,9 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.areCardsRevealed.set(false);
     this.isRevealInProgress.set(false);
     this.selectedCard.set(undefined);
-    this.showUserLeftNotification = false;
-    this.showAdminTransferNotification = false;
-    this.showNewAdminNotification = false;
+    this.notifications.showUserLeftNotification = false;
+    this.notifications.showAdminTransferNotification = false;
+    this.notifications.showNewAdminNotification = false;
   }
 
   private async handleUserLeaving(): Promise<void> {
@@ -449,17 +450,17 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   private showUserLeftMessage(userName: string): void {
-    this.userLeftMessage = `${userName} left the room`;
-    this.showUserLeftNotification = true;
+    this.notifications.userLeftMessage = `${userName} left the room`;
+    this.notifications.showUserLeftNotification = true;
 
     // Auto-hide notification after 4 seconds
     setTimeout(() => {
-      this.showUserLeftNotification = false;
+      this.notifications.showUserLeftNotification = false;
     }, 4000);
   }
 
   dismissUserLeftNotification(): void {
-    this.showUserLeftNotification = false;
+    this.notifications.showUserLeftNotification = false;
   }
 
   isCurrentUserAdmin(): boolean {
@@ -470,30 +471,30 @@ export class RoomComponent implements OnInit, OnDestroy {
   private showAdminTransferMessage(newAdminName: string, newAdminId: string): void {
     console.log(`Showing admin transfer notification to remaining participant. New admin: ${newAdminName} (${newAdminId})`);
 
-    this.adminTransferMessage = `👑 ${newAdminName} is now the room admin`;
-    this.showAdminTransferNotification = true;
+    this.notifications.adminTransferMessage = `👑 ${newAdminName} is now the room admin`;
+    this.notifications.showAdminTransferNotification = true;
 
     setTimeout(() => {
-      this.showAdminTransferNotification = false;
+      this.notifications.showAdminTransferNotification = false;
     }, 3000);
   }
 
   dismissAdminTransferNotification(): void {
-    this.showAdminTransferNotification = false;
+    this.notifications.showAdminTransferNotification = false;
   }
 
   private showNewAdminMessage(): void {
     console.log(`Showing "you are now admin" notification to current user`);
 
-    this.newAdminMessage = `🎉 You are now the room admin!`;
-    this.showNewAdminNotification = true;
+    this.notifications.newAdminMessage = `🎉 You are now the room admin!`;
+    this.notifications.showNewAdminNotification = true;
 
     setTimeout(() => {
-      this.showNewAdminNotification = false;
+      this.notifications.showNewAdminNotification = false;
     }, 3000);
   }
 
   dismissNewAdminNotification(): void {
-    this.showNewAdminNotification = false;
+    this.notifications.showNewAdminNotification = false;
   }
 }

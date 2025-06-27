@@ -1,4 +1,4 @@
-<div class="dashboard">
+<div class="room">
   <app-room-header
     [roomTitle]="roomTitle()"
     [participants]="participants()"
@@ -39,8 +39,6 @@
     </div>
   </section>
 
-
-  <!-- Room redirect alert -->
   @if (showRoomRedirectAlert) {
     <div class="alert-message">
       <div class="alert-content">
@@ -50,7 +48,6 @@
     </div>
   }
 
-  <!-- Username prompt -->
   @if (showUsernamePrompt) {
     <div class="alert-message">
       <div class="alert-content">
@@ -70,36 +67,10 @@
     </div>
   }
 
-  <!-- User left notification -->
-  @if (showUserLeftNotification) {
-    <div class="notification-popup user-left">
-      <div class="notification-content">
-        <span class="notification-icon">👋</span>
-        <p>{{ userLeftMessage }}</p>
-        <button class="notification-close" (click)="dismissUserLeftNotification()">×</button>
-      </div>
-    </div>
-  }
-
-  <!-- Admin transfer notification -->
-  @if (showAdminTransferNotification) {
-    <div class="notification-popup admin-transfer">
-      <div class="notification-content">
-        <span class="notification-icon">👑</span>
-        <p>{{ adminTransferMessage }}</p>
-        <button class="notification-close" (click)="dismissAdminTransferNotification()">×</button>
-      </div>
-    </div>
-  }
-
-  <!-- New admin notification -->
-  @if (showNewAdminNotification) {
-    <div class="notification-popup new-admin">
-      <div class="notification-content">
-        <span class="notification-icon">🎉</span>
-        <p>{{ newAdminMessage }}</p>
-        <button class="notification-close" (click)="dismissNewAdminNotification()">×</button>
-      </div>
-    </div>
-  }
+  <app-room-notifications
+    [notificationData]="notifications"
+    (dismissUserLeft)="dismissUserLeftNotification()"
+    (dismissAdminTransfer)="dismissAdminTransferNotification()"
+    (dismissNewAdmin)="dismissNewAdminNotification()">
+  </app-room-notifications>
 </div>
