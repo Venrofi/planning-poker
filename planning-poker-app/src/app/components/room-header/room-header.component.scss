@@ -79,7 +79,6 @@
         transparent
       );
       pointer-events: none;
-      @include animations.position-shine;
     }
 
     .title-input {

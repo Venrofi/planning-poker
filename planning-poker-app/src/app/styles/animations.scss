@@ -142,13 +142,6 @@ $ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
 // =============================================================================
 
-// Apply gradient background animation
-@mixin animated-gradient-bg {
-  background: linear-gradient(135deg, #4338ca, #6d28d9, #a855f7);
-  background-size: 400% 400%;
-  animation: gradientBackground 15s ease infinite;
-}
-
 // Apply shine effect to buttons
 @mixin shine-effect {
   background: linear-gradient(
@@ -184,11 +177,6 @@ $ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 // Apply pulse scale animation
 @mixin pulse-scale {
   animation: pulseScale 1s infinite;
-}
-
-// Apply position-based shine effect to elements
-@mixin position-shine {
-  animation: positionShine 3s infinite;
 }
 
 // Apply tooltip fade in with centering

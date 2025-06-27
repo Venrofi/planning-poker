@@ -7,7 +7,6 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  @include animations.animated-gradient-bg;
 
   &::before {
     content: '';

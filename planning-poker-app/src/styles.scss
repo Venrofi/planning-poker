@@ -20,7 +20,7 @@ html, body {
   overflow-x: hidden;
   font-family: 'Inter', sans-serif, system-ui;
   color: #fff;
-  @include animations.animated-gradient-bg;
+  background: linear-gradient(135deg, #4338ca, #6d28d9, #a855f7);
 }
 
 /* Glassmorphism Utilities */
@@ -115,7 +115,6 @@ button {
       transparent
     );
     pointer-events: none;
-    @include animations.position-shine;
   }
 
   p {
