@@ -41,11 +41,6 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Firebase Config
-src/app/firebase.js
-/src/app/firebase.js
-firebase.js
-
 # Environment files
 src/environments/environment.ts
 /src/environments/environment.ts

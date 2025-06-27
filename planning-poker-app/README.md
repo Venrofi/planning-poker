@@ -43,7 +43,6 @@ The app will be available at `http://localhost:4200/`
 3. **Configure Environment**
 
    - Copy `src/environments/environment.template.ts` to `src/environments/environment.ts`
-   - Copy `src/app/firebase.template.js` to `src/app/firebase.js`
    - Add your Firebase config:
 
    ```typescript
@@ -58,16 +57,6 @@ The app will be available at `http://localhost:4200/`
        messagingSenderId: "123456789",
        appId: "your-app-id",
      },
-   };
-
-   const firebaseConfig = {
-     apiKey: "YOUR_API_KEY",
-     authDomain: "YOUR_AUTH_DOMAIN",
-     databaseURL: "YOUR_DATABASE_URL",
-     projectId: "YOUR_PROJECT_ID",
-     storageBucket: "YOUR_STORAGE_BUCKET",
-     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-     appId: "YOUR_APP_ID",
    };
    ```
 
