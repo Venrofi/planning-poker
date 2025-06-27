@@ -2,7 +2,8 @@ import { Component, computed, inject, input, output, signal, OnInit, OnDestroy }
 import { CommonModule } from '@angular/common';
 import { ParticipantComponent } from '../participant/participant.component';
 import { Participant } from '../../models/participant.model';
-import { FirebaseService } from '../../services/firebase.service';
+import { RoomService } from '../../services/room.service';
+import { PokerService } from '../../services/poker.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -14,7 +15,8 @@ import { Subscription } from 'rxjs';
 })
 export class PokerTableComponent implements OnInit, OnDestroy {
   private readonly COUNTDOWN_SECONDS = 3;
-  private firebaseService = inject(FirebaseService);
+  private roomService = inject(RoomService);
+  private pokerService = inject(PokerService);
   private countdownSubscription: Subscription | null = null;
   private resetSubscription: Subscription | null = null;
   private revealedStateSubscription: Subscription | null = null;
@@ -49,7 +51,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
     this.isCountingDown.set(true);
     this.isRevealInProgressChange.emit(true);
 
-    this.firebaseService.startCountdown(this.roomId(), this.currentUserId());
+    this.pokerService.startCountdown(this.roomId(), this.currentUserId());
 
     this.asyncCountdown();
   }
@@ -69,7 +71,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
     this.isRevealInProgressChange.emit(false);
 
     if (this.countdownStartedBy() === this.currentUserId()) {
-      this.firebaseService.endCountdown(this.roomId());
+      this.pokerService.endCountdown(this.roomId());
     }
 
     this.toggleReveal();
@@ -85,7 +87,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
       (this.areCardsRevealed() && !newRevealState); // Allow any user to hide cards
 
     if (canUpdateState) {
-      this.firebaseService.setRevealState(this.roomId(), newRevealState);
+      this.pokerService.setRevealState(this.roomId(), newRevealState);
     }
 
     // Set local state immediately for the user who triggered the action
@@ -105,9 +107,9 @@ export class PokerTableComponent implements OnInit, OnDestroy {
     this.isResetting.set(true);
     this.resetInitiatedBy.set(this.currentUserId());
 
-    this.firebaseService.initiateReset(this.roomId(), this.currentUserId())
+    this.pokerService.initiateReset(this.roomId(), this.currentUserId())
       .then(() => {
-        return this.firebaseService.endCountdown(this.roomId());
+        return this.pokerService.endCountdown(this.roomId());
       })
       .then(() => {
         const resetParticipants = this.participants().map(p => ({
@@ -120,7 +122,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
         setTimeout(() => {
           this.isResetting.set(false);
           this.resetInitiatedBy.set(null);
-          this.firebaseService.clearResetState(this.roomId());
+          this.pokerService.clearResetState(this.roomId());
         }, 1000);
       });
   }
@@ -172,7 +174,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.countdownSubscription = this.firebaseService.getCountdownState(this.roomId()).subscribe(countdownState => {
+    this.countdownSubscription = this.pokerService.getCountdownState(this.roomId()).subscribe((countdownState: { isActive: boolean, startedAt: string | null, startedBy: string | null }) => {
       if (countdownState.isActive && !this.isCountingDown()) {
         this.countdownStartedBy.set(countdownState.startedBy);
         this.isCountingDown.set(true);
@@ -181,7 +183,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.resetSubscription = this.firebaseService.getResetState(this.roomId()).subscribe(resetState => {
+    this.resetSubscription = this.pokerService.getResetState(this.roomId()).subscribe((resetState: { isActive: boolean, initiatedAt: string | null, initiatedBy: string | null }) => {
       if (resetState.isActive && resetState.initiatedBy !== this.currentUserId()) {
         this.resetInitiatedBy.set(resetState.initiatedBy);
         this.isResetting.set(true);
@@ -206,7 +208,7 @@ export class PokerTableComponent implements OnInit, OnDestroy {
     });
 
     // Subscribe to room's revealed state for additional synchronization
-    this.revealedStateSubscription = this.firebaseService.getRoomRevealedState(this.roomId()).subscribe(revealed => {
+    this.revealedStateSubscription = this.roomService.getRoomRevealedState(this.roomId()).subscribe((revealed: boolean) => {
       // Only sync if we're not currently in a countdown to avoid conflicts
       if (!this.isCountingDown() && this.areCardsRevealed() !== revealed) {
         this.areCardsRevealed.set(revealed);
