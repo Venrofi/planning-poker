@@ -143,10 +143,44 @@ main {
 
 .notification-popup {
   position: fixed;
-  top: 20px;
   right: 20px;
   z-index: 1000;
   animation: slideInFromRight 0.3s ease-out;
+
+  // Default position for first notification
+  top: 20px;
+
+  // Specific positions for different notification types to prevent overlap
+  &.user-left {
+    top: 20px;
+  }
+
+  &.admin-transfer {
+    top: 100px;
+  }
+
+  &.new-admin {
+    top: 20px; // New admin gets priority position
+
+    .notification-content {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      border: 1px solid rgba(251, 191, 36, 0.6);
+
+      p {
+        color: #ffffff;
+        font-weight: 600;
+      }
+
+      .notification-close {
+        color: rgba(255, 255, 255, 0.8);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+        }
+      }
+    }
+  }
 
   .notification-content {
     background: rgba(255, 255, 255, 0.95);

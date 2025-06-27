@@ -34,9 +34,16 @@ export class RoomComponent implements OnInit, OnDestroy {
   showUserLeftNotification = false;
   userLeftMessage = '';
 
+  showAdminTransferNotification = false;
+  adminTransferMessage = '';
+
+  showNewAdminNotification = false;
+  newAdminMessage = '';
+
   participants = signal<Participant[]>([]);
   private previousParticipants: Participant[] = [];
   private isCurrentUserLeaving = false;
+  private currentAdminId: string | null = null;
 
   cards = signal<Card[]>(['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '?']);
   selectedCard = signal<Card | undefined>(undefined);
@@ -111,15 +118,56 @@ export class RoomComponent implements OnInit, OnDestroy {
 
         this.participantsSubscription = this.participantService.getParticipants(this.roomId()).subscribe((participants: Participant[]) => {
           if (participants && participants.length > 0) {
+            // Track admin changes
+            const currentAdmin = participants.find(p => p.isAdmin);
+            const currentAdminId = currentAdmin?.id || null;
+
+            // Check if admin changed
+            if (this.currentAdminId && this.currentAdminId !== currentAdminId && currentAdminId) {
+              // Admin changed - determine notification strategy
+              console.log(`Admin changed from ${this.currentAdminId} to ${currentAdminId}. Current user: ${this.userId()}, isLeaving: ${this.isCurrentUserLeaving}`);
+
+              const isCurrentUserTheNewAdmin = this.userId() === currentAdminId;
+              const isCurrentUserInParticipants = participants.some(p => p.id === this.userId());
+
+              if (!this.isCurrentUserLeaving && isCurrentUserInParticipants) {
+                if (isCurrentUserTheNewAdmin) {
+                  // Show "you are now admin" message to the new admin
+                  console.log(`Showing "you are admin" notification to new admin: ${currentAdmin?.name}`);
+                  this.showNewAdminMessage();
+                } else {
+                  // Show "X is now admin" message to other participants
+                  console.log(`Showing admin transfer notification for new admin: ${currentAdmin?.name}`);
+                  this.showAdminTransferMessage(currentAdmin!.name, currentAdminId);
+                }
+              } else {
+                console.log(`Not showing admin change notification because:`, {
+                  isNewAdmin: isCurrentUserTheNewAdmin,
+                  isLeaving: this.isCurrentUserLeaving,
+                  isInParticipants: isCurrentUserInParticipants
+                });
+              }
+            }
+
+            // Update the current admin ID for next comparison
+            this.currentAdminId = currentAdminId;
+
             // Check for users who left before updating the participants list
             // But only if the current user is not the one leaving
             if (!this.isCurrentUserLeaving) {
-              this.checkForLeftUsers(participants);
+              this.checkForLeftUsers(participants).then(() => {
+                // Update previousParticipants after checking for left users
+                this.previousParticipants = [...participants];
+              }).catch(error =>
+                console.error('Error checking for left users:', error)
+              );
+            } else {
+              // If current user is leaving, just update the previous participants
+              this.previousParticipants = [...participants];
             }
 
             // Room has participants, update the UI
             this.participants.set(participants);
-            this.previousParticipants = [...participants]; // Store for next comparison
 
             const areRevealed = participants.some((p: Participant) => p.isRevealed);
             this.areCardsRevealed.set(areRevealed);
@@ -132,6 +180,7 @@ export class RoomComponent implements OnInit, OnDestroy {
             // Empty room, clear previous participants but don't show notifications
             this.participants.set([]);
             this.previousParticipants = [];
+            this.currentAdminId = null;
           }
         });
       });
@@ -176,34 +225,6 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
   resetCards(): void {
     this.pokerService.resetCards(this.roomId());
-  }
-
-  private initParticipants(maxVirtualParticipants: number = 9): Participant[] {
-    const participants: Participant[] = [{
-      id: this.userId(),
-      name: this.userName(),
-      selectedCard: undefined,
-      isRevealed: false
-    }];
-
-    const names = ['John', 'Sarah', 'Mike', 'Emma', 'David', 'Alice', 'Bob', 'Charlie', 'Diana'];
-    const cards: Card[] = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
-    const actualParticipantCount = Math.min(maxVirtualParticipants, names.length);
-
-    for (let i = 0; i < actualParticipantCount; i++) {
-      const randomIndex = Math.floor(Math.random() * cards.length);
-      const randomId = crypto.randomUUID();
-
-      participants.push({
-        id: randomId,
-        name: names[i],
-        selectedCard: cards[randomIndex],
-        isRevealed: false
-      });
-    }
-
-    return participants;
   }
 
   promptForUserName(): void {
@@ -259,15 +280,41 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     window.removeEventListener('beforeunload', this.boundBeforeUnloadHandler);
 
-    this.removeParticipantFromRoom();
+    // Handle admin transfer and participant removal
+    this.handleUserLeaving();
 
     // Clear all component state
     this.participants.set([]);
     this.previousParticipants = [];
+    this.currentAdminId = null;
     this.areCardsRevealed.set(false);
     this.isRevealInProgress.set(false);
     this.selectedCard.set(undefined);
     this.showUserLeftNotification = false;
+    this.showAdminTransferNotification = false;
+    this.showNewAdminNotification = false;
+  }
+
+  private async handleUserLeaving(): Promise<void> {
+    try {
+      if (this.roomId() && this.userId()) {
+        // Check if current user is admin and there are other participants
+        const currentUser = this.participants().find(p => p.id === this.userId());
+        const otherParticipants = this.participants().filter(p => p.id !== this.userId());
+
+        if (currentUser?.isAdmin && otherParticipants.length > 0) {
+          // Transfer admin role before leaving
+          const nextAdmin = otherParticipants[0];
+          await this.participantService.transferAdminRole(this.roomId(), nextAdmin.id);
+          console.log(`Transferred admin role to ${nextAdmin.name} before leaving`);
+        }
+
+        // Remove participant from room
+        this.participantService.removeParticipant(this.roomId(), this.userId());
+      }
+    } catch (error) {
+      console.error('Error during user leaving cleanup:', error);
+    }
   }
 
   updateRoomTitle(newTitle: string): void {
@@ -282,15 +329,13 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
   }
 
-  private handleBeforeUnload(event: BeforeUnloadEvent): void {
+  private handleBeforeUnload(): void {
     this.isCurrentUserLeaving = true;
-    this.removeParticipantFromRoom();
-  }
-
-  private removeParticipantFromRoom(): void {
+    // Note: In beforeunload, we can't use async operations reliably
+    // The participant removal will be handled by Firebase presence detection
     if (this.roomId() && this.userId()) {
       this.participantService.removeParticipant(this.roomId(), this.userId())
-        .catch((error: any) => console.error('Error removing participant:', error));
+        .catch((error: unknown) => console.error('Error removing participant:', error));
     }
   }
 
@@ -310,6 +355,18 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     try {
       if (this.roomId() && this.userId()) {
+        // Check if current user is admin and there are other participants
+        const currentUser = this.participants().find(p => p.id === this.userId());
+        const otherParticipants = this.participants().filter(p => p.id !== this.userId());
+
+        if (currentUser?.isAdmin && otherParticipants.length > 0) {
+          // Transfer admin role before leaving
+          const nextAdmin = otherParticipants[0];
+          await this.participantService.transferAdminRole(this.roomId(), nextAdmin.id);
+          console.log(`Transferred admin role to ${nextAdmin.name} before leaving`);
+        }
+
+        // Remove participant from room
         await this.participantService.removeParticipant(this.roomId(), this.userId());
       }
     } catch (error) {
@@ -323,11 +380,17 @@ export class RoomComponent implements OnInit, OnDestroy {
     });
   }
 
-  private checkForLeftUsers(currentParticipants: Participant[]): void {
+  private async checkForLeftUsers(currentParticipants: Participant[]): Promise<void> {
     // Only check if we have previous participants to compare with
     if (this.previousParticipants.length === 0) {
+      console.log('No previous participants to compare with, skipping left users check');
       return;
     }
+
+    console.log('Checking for left users...', {
+      previous: this.previousParticipants.map(p => ({ id: p.id, name: p.name, isAdmin: p.isAdmin })),
+      current: currentParticipants.map(p => ({ id: p.id, name: p.name, isAdmin: p.isAdmin }))
+    });
 
     // Find participants who were in the previous list but not in current list
     const leftUsers = this.previousParticipants.filter(prevParticipant =>
@@ -336,12 +399,53 @@ export class RoomComponent implements OnInit, OnDestroy {
       )
     );
 
+    console.log('Left users detected:', leftUsers.map(u => ({ id: u.id, name: u.name, isAdmin: u.isAdmin })));
+
+    // Check if any admin left by looking at the PREVIOUS participants data
+    // (before Firebase updated the admin roles)
+    const adminLeft = this.previousParticipants.find(p => p.isAdmin &&
+      !currentParticipants.find(current => current.id === p.id)
+    );
+
     // Show notification for each user who left (excluding current user)
-    leftUsers.forEach(leftUser => {
-      if (leftUser.id !== this.userId()) {
+    // This should always be shown to all remaining users regardless of admin changes
+    for (const leftUser of leftUsers) {
+      if (leftUser.id !== this.userId() && !this.isCurrentUserLeaving) {
+        console.log(`Showing user left notification for: ${leftUser.name}`);
         this.showUserLeftMessage(leftUser.name);
       }
-    });
+    }
+
+    // Handle admin transfer if an admin left and there are still participants
+    if (adminLeft && currentParticipants.length > 0) {
+      console.log(`Admin ${adminLeft.name} left (detected from previous data), handling admin transfer...`);
+
+      // Find who became the new admin (should be the first participant in current list)
+      const newAdmin = currentParticipants.find(p => p.isAdmin);
+
+      if (newAdmin) {
+        console.log(`New admin detected: ${newAdmin.name} (${newAdmin.id})`);
+
+        // Determine what notification to show based on current user
+        if (this.userId() === newAdmin.id) {
+          // Current user is the new admin - show "you are now admin" message
+          console.log(`Current user is the new admin, showing "you are admin" notification`);
+          this.showNewAdminMessage();
+        } else {
+          // Current user is not the new admin - show "X is now admin" message
+          console.log(`Showing admin transfer notification for new admin: ${newAdmin.name}`);
+          this.showAdminTransferMessage(newAdmin.name, newAdmin.id);
+        }
+
+        // Ensure the admin role is properly transferred in case it wasn't automatic
+        try {
+          await this.participantService.transferAdminRole(this.roomId(), newAdmin.id);
+          console.log(`Admin role transfer completed for: ${newAdmin.name}`);
+        } catch (error) {
+          console.warn('Admin role transfer may have already occurred:', error);
+        }
+      }
+    }
   }
 
   private showUserLeftMessage(userName: string): void {
@@ -361,5 +465,35 @@ export class RoomComponent implements OnInit, OnDestroy {
   isCurrentUserAdmin(): boolean {
     const currentUser = this.participants().find(p => p.id === this.userId());
     return currentUser?.isAdmin || false;
+  }
+
+  private showAdminTransferMessage(newAdminName: string, newAdminId: string): void {
+    console.log(`Showing admin transfer notification to remaining participant. New admin: ${newAdminName} (${newAdminId})`);
+
+    this.adminTransferMessage = `👑 ${newAdminName} is now the room admin`;
+    this.showAdminTransferNotification = true;
+
+    setTimeout(() => {
+      this.showAdminTransferNotification = false;
+    }, 3000);
+  }
+
+  dismissAdminTransferNotification(): void {
+    this.showAdminTransferNotification = false;
+  }
+
+  private showNewAdminMessage(): void {
+    console.log(`Showing "you are now admin" notification to current user`);
+
+    this.newAdminMessage = `🎉 You are now the room admin!`;
+    this.showNewAdminNotification = true;
+
+    setTimeout(() => {
+      this.showNewAdminNotification = false;
+    }, 3000);
+  }
+
+  dismissNewAdminNotification(): void {
+    this.showNewAdminNotification = false;
   }
 }
