@@ -181,7 +181,7 @@ export class FirebaseService {
 
           // We need to manually check for the last participant
           // This runs a server-side check when the client disconnects
-          const checkLastParticipantRef = ref(this.db, `rooms/${roomId}/.lastParticipantCheck/${userId}`);
+          const checkLastParticipantRef = ref(this.db, `rooms/${roomId}/lastParticipantCheck/${userId}`);
 
           // This node is created when disconnect happens and then immediately cleaned up
           onDisconnect(checkLastParticipantRef).set(new Date().toISOString())
