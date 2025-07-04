@@ -28,7 +28,7 @@ export class NotificationService {
   showAdminTransfer(newAdminName: string): void {
     this._notifications.update(n => ({
       ...n,
-      adminTransferMessage: `👑 ${newAdminName} is now the room admin`,
+      adminTransferMessage: `${newAdminName} is now the room admin`,
       showAdminTransferNotification: true
     }));
     setTimeout(() => this.dismissAdminTransfer(), 3000);
@@ -37,7 +37,7 @@ export class NotificationService {
   showNewAdmin(): void {
     this._notifications.update(n => ({
       ...n,
-      newAdminMessage: `🎉 You are now the room admin!`,
+      newAdminMessage: `You are now the room admin!`,
       showNewAdminNotification: true
     }));
     setTimeout(() => this.dismissNewAdmin(), 3000);

@@ -66,11 +66,20 @@ export class RoomNavigationService {
     await this.navigateToRoomWithCleanup(newRoomId);
   }
 
-  private async navigateToRoomWithCleanup(roomId: string): Promise<void> {
+  private async navigateToRoomWithCleanup(newRoomId: string): Promise<void> {
     this.roomStateService.setUserLeaving(true);
-    await this.userSessionService.handleUserLeaving(roomId, this.roomStateService.participants());
+
+    // Get current room ID from the router state
+    const currentUrl = this.router.url;
+    const currentRoomIdMatch = currentUrl.match(/\/room\/([^/]+)/);
+    const currentRoomId = currentRoomIdMatch ? currentRoomIdMatch[1] : null;
+
+    if (currentRoomId) {
+      await this.userSessionService.handleUserLeaving(currentRoomId, this.roomStateService.participants());
+    }
+
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.router.navigate(['room', roomId]);
+      this.router.navigate(['room', newRoomId]);
     });
   }
 

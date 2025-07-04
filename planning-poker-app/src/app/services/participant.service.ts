@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Database, get, onDisconnect, onValue, ref, remove, set, update } from '@angular/fire/database';
+import { Database, get, onDisconnect, onValue, ref, remove, set, update, DatabaseReference } from '@angular/fire/database';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Participant } from '../models/participant.model';
 
@@ -121,42 +121,58 @@ export class ParticipantService {
         // When the client connects, set their presence
         set(presenceRef, true);
 
-        // First, set up an onDisconnect to remove this user's presence and participant data
-        onDisconnect(presenceRef).remove();
-        onDisconnect(participantRef).remove();
-
-        // Second, set up a special transaction that will run server-side when the client disconnects
-        // This will check if this was the last participant and delete the room if needed
-        const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
-
-        // Create a server value that will be evaluated when the disconnect happens
-        onDisconnect(participantRef).set(null).then(() => {
-          // We need to manually check for the last participant
-          // This runs a server-side check when the client disconnects
-          const checkLastParticipantRef = ref(this.db, `rooms/${roomId}/lastParticipantCheck/${userId}`);
-
-          // This node is created when disconnect happens and then immediately cleaned up
-          onDisconnect(checkLastParticipantRef).set(new Date().toISOString())
-            .then(() => {
-              // Set up a listener that will check when this node appears
-              onValue(checkLastParticipantRef, (checkSnapshot) => {
-                if (checkSnapshot.exists()) {
-                  // Check if there are any participants left
-                  get(participantsRef).then(participantsSnapshot => {
-                    if (!participantsSnapshot.exists() ||
-                      Object.keys(participantsSnapshot.val() || {}).length === 0) {
-                      // No participants left, delete the room immediately
-                      remove(roomRef);
-                    }
-
-                    // Remove the check node regardless
-                    remove(checkLastParticipantRef);
-                  });
-                }
-              });
-            });
-        });
+        // Set up onDisconnect handlers for admin transfer and cleanup
+        this.setupDisconnectHandlers(roomId, userId, presenceRef, participantRef, roomRef);
       }
+    });
+  }
+
+  private setupDisconnectHandlers(roomId: string, userId: string, presenceRef: DatabaseReference, participantRef: DatabaseReference, roomRef: DatabaseReference): void {
+    // First, set up an onDisconnect to remove this user's presence
+    onDisconnect(presenceRef).remove();
+
+    // Create a disconnect handler that will check for admin transfer
+    const disconnectCheckRef = ref(this.db, `rooms/${roomId}/disconnectCheck/${userId}`);
+
+    // When the user disconnects, create a timestamp node that triggers cleanup
+    onDisconnect(disconnectCheckRef).set(new Date().toISOString()).then(() => {
+      // Set up a listener that will handle the disconnect event
+      onValue(disconnectCheckRef, async (checkSnapshot) => {
+        if (checkSnapshot.exists()) {
+          try {
+            // Get current participants before removing the disconnected user
+            const participantsSnapshot = await get(ref(this.db, `rooms/${roomId}/participants`));
+
+            if (participantsSnapshot.exists()) {
+              const participants = participantsSnapshot.val();
+              const disconnectedUser = participants[userId];
+              const otherParticipants = Object.keys(participants).filter(id => id !== userId);
+
+              // If the disconnected user was admin and there are other participants
+              if (disconnectedUser?.isAdmin && otherParticipants.length > 0) {
+                // Transfer admin role to the first other participant
+                const newAdminId = otherParticipants[0];
+                await this.transferAdminRole(roomId, newAdminId);
+              }
+
+              // Remove the disconnected participant
+              await remove(participantRef);
+
+              // Check if this was the last participant
+              const remainingParticipants = Object.keys(participants).filter(id => id !== userId);
+              if (remainingParticipants.length === 0) {
+                // No participants left, delete the room
+                await remove(roomRef);
+              }
+            }
+          } catch (error) {
+            console.error('Error handling disconnect:', error);
+          } finally {
+            // Clean up the disconnect check node
+            remove(disconnectCheckRef);
+          }
+        }
+      });
     });
   }
 

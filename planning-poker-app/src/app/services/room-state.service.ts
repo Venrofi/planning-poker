@@ -46,79 +46,67 @@ export class RoomStateService {
     });
 
     this.participantsSubscription = this.participantService.getParticipants(roomId).subscribe(participants => {
-      this.handleParticipantsUpdate(participants, roomId);
+      this.handleParticipantsUpdate(participants);
     });
   }
 
-  private async handleParticipantsUpdate(participants: Participant[], roomId: string): Promise<void> {
+  private async handleParticipantsUpdate(participants: Participant[]): Promise<void> {
+    await this.handleUserDepartures(participants);
+    await this.handleAdminChanges(participants);
+
+    this.previousParticipants = [...participants];
+
     if (!participants?.length) {
       this.resetState();
       return;
     }
 
-    await this.handleAdminChanges(participants);
-    await this.handleUserDepartures(participants, roomId);
     this.updateUI(participants);
-    this.previousParticipants = [...participants];
   }
 
-  private async handleAdminChanges(participants: Participant[]): Promise<void> {
+  private async handleAdminChanges(participants: Participant[]): Promise<Participant[]> {
     const currentAdmin = participants.find(p => p.isAdmin);
     const currentAdminId = currentAdmin?.id || null;
 
     if (this.currentAdminId && this.currentAdminId !== currentAdminId && currentAdminId) {
-      const isCurrentUserTheNewAdmin = this.userSessionService.userId() === currentAdminId;
-      const isCurrentUserInParticipants = participants.some(p => p.id === this.userSessionService.userId());
+      const previousAdmin = this.previousParticipants.find(p => p.isAdmin);
+      const newAdmin = participants.find(p => p.id === currentAdminId);
 
-      if (!this.isCurrentUserLeaving && isCurrentUserInParticipants) {
-        if (isCurrentUserTheNewAdmin) {
+      if (newAdmin) {
+        if (this.userSessionService.userId() === newAdmin.id) {
           this.notificationService.showNewAdmin();
         } else {
-          this.notificationService.showAdminTransfer(currentAdmin!.name);
+          this.notificationService.showAdminTransfer(newAdmin.name);
+        }
+
+        if (previousAdmin) {
+          const isCurrentUserLeavingThisSession = previousAdmin.id === this.userSessionService.userId();
+          if (!isCurrentUserLeavingThisSession) {
+            this.notificationService.showUserLeft(previousAdmin.name);
+          }
         }
       }
     }
 
     this.currentAdminId = currentAdminId;
+    return participants;
   }
 
-  private async handleUserDepartures(participants: Participant[], roomId: string): Promise<void> {
-    if (this.isCurrentUserLeaving || !this.previousParticipants.length) return;
+  private async handleUserDepartures(participants: Participant[]): Promise<void> {
+    if (!this.previousParticipants.length) return;
 
     const leftUsers = this.previousParticipants.filter(prev =>
       !participants.find(current => current.id === prev.id)
     );
 
-    const adminLeft = this.previousParticipants.find(p =>
-      p.isAdmin && !participants.find(current => current.id === p.id)
-    );
-
     leftUsers.forEach(leftUser => {
-      if (leftUser.id !== this.userSessionService.userId()) {
+      const isCurrentUserLeavingThisSession = leftUser.id === this.userSessionService.userId();
+      const shouldShow = !isCurrentUserLeavingThisSession;
+
+      if (shouldShow) {
         this.notificationService.showUserLeft(leftUser.name);
       }
     });
-
-    if (adminLeft && participants.length > 0) {
-      await this.handleAdminTransfer(participants, roomId);
-    }
-  }
-
-  private async handleAdminTransfer(participants: Participant[], roomId: string): Promise<void> {
-    const newAdmin = participants.find(p => p.isAdmin);
-    if (!newAdmin) return;
-
-    if (this.userSessionService.userId() === newAdmin.id) {
-      this.notificationService.showNewAdmin();
-    } else {
-      this.notificationService.showAdminTransfer(newAdmin.name);
-    }
-
-    try {
-      await this.participantService.transferAdminRole(roomId, newAdmin.id);
-    } catch (error) {
-      console.error('Error transferring admin role:', error);
-    }
   }
 
   private updateUI(participants: Participant[]): void {
@@ -160,12 +148,15 @@ export class RoomStateService {
 
   resetState(): void {
     this._participants.set([]);
-    this.previousParticipants = [];
     this.currentAdminId = null;
   }
 
   setUserLeaving(leaving: boolean): void {
     this.isCurrentUserLeaving = leaving;
+  }
+
+  isUserLeaving(): boolean {
+    return this.isCurrentUserLeaving;
   }
 
   isCurrentUserAdmin(): boolean {

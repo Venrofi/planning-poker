@@ -66,7 +66,7 @@ export class UserSessionService {
         await this.participantService.transferAdminRole(roomId, otherParticipants[0].id);
       }
 
-      this.participantService.removeParticipant(roomId, this.userId());
+      await this.participantService.removeParticipant(roomId, this.userId());
     } catch (error) {
       console.error('Error during user leaving cleanup:', error);
     }
