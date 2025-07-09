@@ -47,6 +47,7 @@ export class RoomService {
 
   setRoomTitle(roomId: string, title: string): Promise<boolean> {
     const roomRef = ref(this.db, `rooms/${roomId}`);
+
     return update(roomRef, {
       title: title
     }).then(() => true)
@@ -86,6 +87,7 @@ export class RoomService {
 
   deleteRoom(roomId: string): Promise<boolean> {
     const roomRef = ref(this.db, `rooms/${roomId}`);
+
     return remove(roomRef)
       .then(() => {
         return true;
@@ -124,6 +126,7 @@ export class RoomService {
             }
 
             const roomData = childSnapshot.val();
+
             if ((roomData.deletion_scheduled || roomData.emptyAt || roomData.lastActive) &&
               (hasParticipants || hasPresence)) {
               const roomRef = ref(this.db, `rooms/${roomId}`);

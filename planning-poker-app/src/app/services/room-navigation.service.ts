@@ -26,36 +26,39 @@ export class RoomNavigationService {
     }
 
     roomId.set(providedRoomId);
-    await this.joinRoom(providedRoomId, roomId);
+    await this.joinRoom(roomId);
   }
 
-  private async joinRoom(roomId: string, roomIdSignal: WritableSignal<string>): Promise<void> {
+  private async joinRoom(roomId: WritableSignal<string>): Promise<void> {
     try {
-      const roomCreated = await this.roomService.createRoom(roomId);
-      if (!roomCreated) {
-        this.redirectToNewRoom(roomIdSignal);
+      const currentRoomId = roomId();
+      const room = await this.roomService.createRoom(currentRoomId);
+      if (!room) {
+        this.redirectToNewRoom(roomId);
         return;
       }
 
       this.roomService.checkStaleRooms();
-      const joined = await this.participantService.joinRoom(roomId, this.userSessionService.userId(), this.userSessionService.userName());
+      const joined = await this.participantService.joinRoom(currentRoomId, this.userSessionService.userId(), this.userSessionService.userName());
 
       if (!joined) {
-        this.redirectToNewRoom(roomIdSignal);
+        this.redirectToNewRoom(roomId);
         return;
       }
 
-      this.roomStateService.setupSubscriptions(roomId);
+      this.roomStateService.setupSubscriptions(currentRoomId);
     } catch (error) {
-      console.error(`Error joining room ${roomId}: `, error);
-      this.redirectToNewRoom(roomIdSignal);
+      console.error(`Error joining room ${roomId()}: `, error);
+      this.redirectToNewRoom(roomId);
     }
   }
 
-  private redirectToNewRoom(roomIdSignal: WritableSignal<string>): void {
+  private redirectToNewRoom(roomId: WritableSignal<string>): void {
     this.showRoomRedirectAlert.set(true);
+
     const newRoomId = this.roomService.generateShortRoomId();
-    roomIdSignal.set(newRoomId);
+    roomId.set(newRoomId);
+
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       this.router.navigate(['room', newRoomId]);
     });
