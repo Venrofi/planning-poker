@@ -58,10 +58,20 @@ export class RoomStateService {
 
     if (!participants?.length) {
       this.resetState();
+      const roomId = this.getCurrentRoomId();
+      if (roomId) {
+        this.roomService.checkAndCleanupEmptyRoom(roomId);
+      }
       return;
     }
 
     this.updateUI(participants);
+  }
+
+  private getCurrentRoomId(): string | null {
+    const url = window.location.pathname;
+    const match = url.match(/\/room\/([^/]+)/);
+    return match ? match[1] : null;
   }
 
   private async handleAdminChanges(participants: Participant[]): Promise<Participant[]> {

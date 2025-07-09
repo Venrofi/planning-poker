@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { ParticipantService } from './participant.service';
+import { RoomService } from './room.service';
 import { Participant } from '../models/participant.model';
 
 @Injectable({
@@ -7,6 +8,7 @@ import { Participant } from '../models/participant.model';
 })
 export class UserSessionService {
   private participantService = inject(ParticipantService);
+  private roomService = inject(RoomService);
 
   private _userId = signal<string>(crypto.randomUUID());
   private _userName = signal<string>('Radek');
@@ -67,6 +69,12 @@ export class UserSessionService {
       }
 
       await this.participantService.removeParticipant(roomId, this.userId());
+
+      if (otherParticipants.length === 0) {
+        setTimeout(() => {
+          this.roomService.checkAndCleanupEmptyRoom(roomId);
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error during user leaving cleanup:', error);
     }

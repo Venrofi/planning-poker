@@ -12,16 +12,13 @@ export class ParticipantService {
   joinRoom(roomId: string, userId: string, username: string): Promise<boolean> {
     const MAX_ROOM_PARTICIPANTS = 10;
 
-    // Check for existing participant with this userId
     const participantRef = ref(this.db, `rooms/${roomId}/participants/${userId}`);
     return get(participantRef).then((participantSnapshot) => {
-      // If this participant already exists, just update their name
       if (participantSnapshot.exists()) {
         update(participantRef, { name: username });
-        return true; // Success
+        return true;
       }
 
-      // Check if room is full (max 10 participants)
       const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
       return get(participantsRef).then((participantsSnapshot) => {
         const participantCount = participantsSnapshot.exists() ?
@@ -33,7 +30,6 @@ export class ParticipantService {
 
         const isAdmin = participantCount === 0;
 
-        // Add the participant
         set(participantRef, {
           id: userId,
           name: username,
@@ -55,7 +51,7 @@ export class ParticipantService {
       snapshot.forEach((childSnapshot) => {
         const participant = childSnapshot.val() as Participant;
         participants.push(participant);
-        return false; // Don't cancel enumeration
+        return false;
       });
       participantsSubject.next(participants);
     });
@@ -84,7 +80,6 @@ export class ParticipantService {
       remove(presenceRef)
     ])
       .then(() => {
-        // Check if this was the last participant
         return Promise.all([
           get(ref(this.db, `rooms/${roomId}/participants`)),
           get(ref(this.db, `rooms/${roomId}/presence`))
@@ -98,7 +93,6 @@ export class ParticipantService {
           Object.keys(presenceSnapshot.val() || {}).length > 0;
 
         if (!hasParticipants && !hasPresence) {
-          // No participants and no presence left, delete the room immediately
           return remove(roomRef);
         }
         return Promise.resolve();
@@ -118,29 +112,21 @@ export class ParticipantService {
 
     onValue(connectedRef, (snapshot) => {
       if (snapshot.val() === true) {
-        // When the client connects, set their presence
         set(presenceRef, true);
-
-        // Set up onDisconnect handlers for admin transfer and cleanup
         this.setupDisconnectHandlers(roomId, userId, presenceRef, participantRef, roomRef);
       }
     });
   }
 
   private setupDisconnectHandlers(roomId: string, userId: string, presenceRef: DatabaseReference, participantRef: DatabaseReference, roomRef: DatabaseReference): void {
-    // First, set up an onDisconnect to remove this user's presence
     onDisconnect(presenceRef).remove();
 
-    // Create a disconnect handler that will check for admin transfer
     const disconnectCheckRef = ref(this.db, `rooms/${roomId}/disconnectCheck/${userId}`);
 
-    // When the user disconnects, create a timestamp node that triggers cleanup
     onDisconnect(disconnectCheckRef).set(new Date().toISOString()).then(() => {
-      // Set up a listener that will handle the disconnect event
       onValue(disconnectCheckRef, async (checkSnapshot) => {
         if (checkSnapshot.exists()) {
           try {
-            // Get current participants before removing the disconnected user
             const participantsSnapshot = await get(ref(this.db, `rooms/${roomId}/participants`));
 
             if (participantsSnapshot.exists()) {
@@ -148,27 +134,21 @@ export class ParticipantService {
               const disconnectedUser = participants[userId];
               const otherParticipants = Object.keys(participants).filter(id => id !== userId);
 
-              // If the disconnected user was admin and there are other participants
               if (disconnectedUser?.isAdmin && otherParticipants.length > 0) {
-                // Transfer admin role to the first other participant
                 const newAdminId = otherParticipants[0];
                 await this.transferAdminRole(roomId, newAdminId);
               }
 
-              // Remove the disconnected participant
               await remove(participantRef);
 
-              // Check if this was the last participant
               const remainingParticipants = Object.keys(participants).filter(id => id !== userId);
               if (remainingParticipants.length === 0) {
-                // No participants left, delete the room
                 await remove(roomRef);
               }
             }
           } catch (error) {
             console.error('Error handling disconnect:', error);
           } finally {
-            // Clean up the disconnect check node
             remove(disconnectCheckRef);
           }
         }
@@ -188,12 +168,10 @@ export class ParticipantService {
       const participants = snapshot.val();
       const updates: Record<string, boolean> = {};
 
-      // Remove admin role from all participants
       Object.keys(participants).forEach(participantId => {
         updates[`${participantId}/isAdmin`] = false;
       });
 
-      // Set new admin
       if (participants[newAdminId]) {
         updates[`${newAdminId}/isAdmin`] = true;
       }
@@ -217,7 +195,6 @@ export class ParticipantService {
 
       const participants = snapshot.val();
 
-      // Find the first participant that is not the one leaving
       for (const participantId of Object.keys(participants)) {
         if (participantId !== excludeUserId) {
           return participantId;

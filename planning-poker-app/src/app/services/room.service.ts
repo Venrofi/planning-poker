@@ -105,11 +105,9 @@ export class RoomService {
           const roomId = childSnapshot.key;
           if (!roomId) return false;
 
-          // For each room, check if it has any participants
           const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
           const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
 
-          // Get both participants and presence
           Promise.all([
             get(participantsRef),
             get(presenceRef)
@@ -120,17 +118,14 @@ export class RoomService {
             const hasPresence = presenceSnapshot.exists() &&
               Object.keys(presenceSnapshot.val() || {}).length > 0;
 
-            // If room has no participants and no presence, delete it
             if (!hasParticipants && !hasPresence) {
               const roomRef = ref(this.db, `rooms/${roomId}`);
               remove(roomRef);
             }
 
-            // Clean up old format flags if they exist
             const roomData = childSnapshot.val();
             if ((roomData.deletion_scheduled || roomData.emptyAt || roomData.lastActive) &&
               (hasParticipants || hasPresence)) {
-              // Room has participants but has deletion flags, clear them
               const roomRef = ref(this.db, `rooms/${roomId}`);
               update(roomRef, {
                 deletion_scheduled: null,
@@ -140,7 +135,7 @@ export class RoomService {
             }
           });
 
-          return false; // Don't cancel enumeration
+          return false;
         });
       }
     });
@@ -151,30 +146,50 @@ export class RoomService {
     const roomRef = ref(this.db, `rooms/${roomId}`);
     const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
 
-    // Check for empty rooms based on presence
     onValue(presenceRef, (snapshot) => {
       if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
-        // Room is empty by presence, check participants too
         get(participantsRef).then(participantsSnapshot => {
           if (!participantsSnapshot.exists() || Object.keys(participantsSnapshot.val() || {}).length === 0) {
-            // Room is truly empty, delete it immediately
             remove(roomRef);
           }
         });
       }
     });
 
-    // Also listen to participants directly in case presence isn't updated
     onValue(participantsRef, (snapshot) => {
       if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
-        // No participants, check presence too to be sure
         get(presenceRef).then(presenceSnapshot => {
           if (!presenceSnapshot.exists() || Object.keys(presenceSnapshot.val() || {}).length === 0) {
-            // Room is truly empty, delete it immediately
             remove(roomRef);
           }
         });
       }
     });
+  }
+
+  async checkAndCleanupEmptyRoom(roomId: string): Promise<void> {
+    const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
+    const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+
+    try {
+      const [participantsSnapshot, presenceSnapshot] = await Promise.all([
+        get(participantsRef),
+        get(presenceRef)
+      ]);
+
+      const hasParticipants = participantsSnapshot.exists() &&
+        Object.keys(participantsSnapshot.val() || {}).length > 0;
+
+      const hasPresence = presenceSnapshot.exists() &&
+        Object.keys(presenceSnapshot.val() || {}).length > 0;
+
+      if (!hasParticipants && !hasPresence) {
+        await remove(roomRef);
+        console.log(`Cleaned up empty room: ${roomId}`);
+      }
+    } catch (error) {
+      console.error('Error checking room for cleanup:', error);
+    }
   }
 }
