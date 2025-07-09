@@ -60,10 +60,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Only handle user leaving if we're not already in the process of leaving
     if (!this.roomStateService.isUserLeaving()) {
       this.roomStateService.setUserLeaving(true);
-      // Fire and forget - we can't await in ngOnDestroy
       this.userSessionService.handleUserLeaving(this.roomId(), this.roomStateService.participants());
     }
     this.roomStateService.cleanup();
@@ -82,7 +80,6 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   private handleBeforeUnload(): void {
     this.roomStateService.setUserLeaving(true);
-    // Fire and forget - we can't await in beforeunload
     this.userSessionService.handleUserLeaving(this.roomId(), this.roomStateService.participants());
   }
 

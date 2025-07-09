@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Database, get, onValue, ref, update } from '@angular/fire/database';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { CountdownState, ResetState } from '../models/poker.model';
+import { Card } from '../models/cards.model';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +10,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class PokerService {
   private db = inject(Database);
 
-  selectCard(roomId: string, userId: string, card: string | undefined): void {
+  selectCard(roomId: string, userId: string, card: Card | undefined): void {
     const participantRef = ref(this.db, `rooms/${roomId}/participants/${userId}`);
     update(participantRef, {
       selectedCard: card
@@ -29,7 +31,7 @@ export class PokerService {
             isRevealed: revealed
           });
         }
-        return false; // Don't cancel enumeration
+        return false;
       });
     });
   }
@@ -67,8 +69,8 @@ export class PokerService {
       });
   }
 
-  getCountdownState(roomId: string): Observable<{ isActive: boolean, startedAt: string | null, startedBy: string | null }> {
-    const countdownSubject = new BehaviorSubject<{ isActive: boolean, startedAt: string | null, startedBy: string | null }>({
+  getCountdownState(roomId: string): Observable<CountdownState> {
+    const countdownSubject = new BehaviorSubject<CountdownState>({
       isActive: false,
       startedAt: null,
       startedBy: null
@@ -117,8 +119,8 @@ export class PokerService {
     });
   }
 
-  getResetState(roomId: string): Observable<{ isActive: boolean, initiatedAt: string | null, initiatedBy: string | null }> {
-    const resetSubject = new BehaviorSubject<{ isActive: boolean, initiatedAt: string | null, initiatedBy: string | null }>({
+  getResetState(roomId: string): Observable<ResetState> {
+    const resetSubject = new BehaviorSubject<ResetState>({
       isActive: false,
       initiatedAt: null,
       initiatedBy: null
