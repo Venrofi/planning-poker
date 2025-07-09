@@ -87,93 +87,61 @@ export class RoomService {
 
   deleteRoom(roomId: string): Promise<boolean> {
     const roomRef = ref(this.db, `rooms/${roomId}`);
-
     return remove(roomRef)
-      .then(() => {
-        return true;
-      })
+      .then(() => true)
       .catch(error => {
         console.error('Error deleting room:', error);
         return false;
       });
   }
 
-  checkStaleRooms(): void {
+  cleanupRoom(roomId: string): void {
+    const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
+
+    onValue(participantsRef, async (snapshot) => {
+      if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
+        await this.deleteEmptyRoom(roomId);
+      }
+    });
+  }
+
+  async deleteEmptyRoom(roomId: string): Promise<void> {
+    try {
+      const isEmpty = await this.isRoomEmpty(roomId);
+      if (isEmpty) {
+        await this.deleteRoom(roomId);
+      }
+    } catch (error) {
+      console.error('Error checking room for cleanup:', error);
+    }
+  }
+
+  async checkStaleRooms(): Promise<void> {
     const roomsRef = ref(this.db, 'rooms');
 
-    get(roomsRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        snapshot.forEach((childSnapshot) => {
-          const roomId = childSnapshot.key;
-          if (!roomId) return false;
+    try {
+      const snapshot = await get(roomsRef);
+      if (!snapshot.exists()) return;
 
-          const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
-          const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
+      const cleanupPromises: Promise<void>[] = [];
 
-          Promise.all([
-            get(participantsRef),
-            get(presenceRef)
-          ]).then(([participantsSnapshot, presenceSnapshot]) => {
-            const hasParticipants = participantsSnapshot.exists() &&
-              Object.keys(participantsSnapshot.val() || {}).length > 0;
+      snapshot.forEach((childSnapshot) => {
+        const roomId = childSnapshot.key;
+        if (roomId) {
+          cleanupPromises.push(this.deleteEmptyRoom(roomId));
+        }
+        return false;
+      });
 
-            const hasPresence = presenceSnapshot.exists() &&
-              Object.keys(presenceSnapshot.val() || {}).length > 0;
-
-            if (!hasParticipants && !hasPresence) {
-              const roomRef = ref(this.db, `rooms/${roomId}`);
-              remove(roomRef);
-            }
-
-            const roomData = childSnapshot.val();
-
-            if ((roomData.deletion_scheduled || roomData.emptyAt || roomData.lastActive) &&
-              (hasParticipants || hasPresence)) {
-              const roomRef = ref(this.db, `rooms/${roomId}`);
-              update(roomRef, {
-                deletion_scheduled: null,
-                emptyAt: null,
-                lastActive: null
-              });
-            }
-          });
-
-          return false;
-        });
-      }
-    });
+      await Promise.all(cleanupPromises);
+    } catch (error) {
+      console.error('Error checking stale rooms:', error);
+    }
   }
 
-  cleanupRoom(roomId: string): void {
-    const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
-    const roomRef = ref(this.db, `rooms/${roomId}`);
-    const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
-
-    onValue(presenceRef, (snapshot) => {
-      if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
-        get(participantsRef).then(participantsSnapshot => {
-          if (!participantsSnapshot.exists() || Object.keys(participantsSnapshot.val() || {}).length === 0) {
-            remove(roomRef);
-          }
-        });
-      }
-    });
-
-    onValue(participantsRef, (snapshot) => {
-      if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
-        get(presenceRef).then(presenceSnapshot => {
-          if (!presenceSnapshot.exists() || Object.keys(presenceSnapshot.val() || {}).length === 0) {
-            remove(roomRef);
-          }
-        });
-      }
-    });
-  }
-
-  async checkAndCleanupEmptyRoom(roomId: string): Promise<void> {
+  private async isRoomEmpty(roomId: string): Promise<boolean> {
     const participantsRef = ref(this.db, `rooms/${roomId}/participants`);
     const presenceRef = ref(this.db, `rooms/${roomId}/presence`);
-    const roomRef = ref(this.db, `rooms/${roomId}`);
 
     try {
       const [participantsSnapshot, presenceSnapshot] = await Promise.all([
@@ -181,17 +149,13 @@ export class RoomService {
         get(presenceRef)
       ]);
 
-      const hasParticipants = participantsSnapshot.exists() &&
-        Object.keys(participantsSnapshot.val() || {}).length > 0;
+      const hasParticipants = participantsSnapshot.exists() && Object.keys(participantsSnapshot.val() || {}).length > 0;
+      const hasPresence = presenceSnapshot.exists() && Object.keys(presenceSnapshot.val() || {}).length > 0;
 
-      const hasPresence = presenceSnapshot.exists() &&
-        Object.keys(presenceSnapshot.val() || {}).length > 0;
-
-      if (!hasParticipants && !hasPresence) {
-        await remove(roomRef);
-      }
+      return !hasParticipants && !hasPresence;
     } catch (error) {
-      console.error('Error checking room for cleanup:', error);
+      console.error('Error checking if room is empty:', error);
+      return false;
     }
   }
 }
