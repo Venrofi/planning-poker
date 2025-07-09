@@ -71,9 +71,7 @@ export class UserSessionService {
       await this.participantService.removeParticipant(roomId, this.userId());
 
       if (otherParticipants.length === 0) {
-        setTimeout(() => {
-          this.roomService.checkAndCleanupEmptyRoom(roomId);
-        }, 1000);
+        this.roomService.checkAndCleanupEmptyRoom(roomId)
       }
     } catch (error) {
       console.error('Error during user leaving cleanup:', error);

@@ -58,11 +58,6 @@ export class RoomStateService {
 
     if (!participants?.length) {
       this.resetState();
-      const roomId = this.getCurrentRoomId();
-      if (roomId) {
-        this.roomService.checkAndCleanupEmptyRoom(roomId);
-      }
-      return;
     }
 
     this.updateUI(participants);
