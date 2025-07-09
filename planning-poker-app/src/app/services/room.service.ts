@@ -38,7 +38,7 @@ export class RoomService {
           title: 'Sprint Planning Poker'
         }).then(() => true);
       }
-      return true; // Room already exists
+      return true;
     }).catch(error => {
       console.error('Error creating room:', error);
       return false;
@@ -186,7 +186,6 @@ export class RoomService {
 
       if (!hasParticipants && !hasPresence) {
         await remove(roomRef);
-        console.log(`Cleaned up empty room: ${roomId}`);
       }
     } catch (error) {
       console.error('Error checking room for cleanup:', error);

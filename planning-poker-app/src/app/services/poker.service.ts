@@ -51,7 +51,7 @@ export class PokerService {
             isRevealed: false
           });
         }
-        return false; // Don't cancel enumeration
+        return false;
       });
     });
   }

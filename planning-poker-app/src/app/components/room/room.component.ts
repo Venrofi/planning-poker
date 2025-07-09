@@ -25,14 +25,14 @@ export class RoomComponent implements OnInit, OnDestroy {
   roomId = signal<string>('');
 
   private route = inject(ActivatedRoute);
-  private routeSubscription: Subscription | null = null;
-  private boundBeforeUnloadHandler: (event: BeforeUnloadEvent) => void;
   private pokerService = inject(PokerService);
-
   notificationService = inject(NotificationService);
   userSessionService = inject(UserSessionService);
   roomStateService = inject(RoomStateService);
   roomNavigationService = inject(RoomNavigationService);
+
+  private routeSubscription: Subscription | null = null;
+  private boundBeforeUnloadHandler: (event: BeforeUnloadEvent) => void;
 
   get roomTitle() { return this.roomStateService.roomTitle; }
   get userId() { return this.userSessionService.userId; }
@@ -71,18 +71,6 @@ export class RoomComponent implements OnInit, OnDestroy {
     window.removeEventListener('beforeunload', this.boundBeforeUnloadHandler);
   }
 
-  private async handleRouteChange(providedRoomId: string | null): Promise<void> {
-    await this.roomNavigationService.handleRouteChange(providedRoomId, this.roomId);
-    if (this.roomId()) {
-      this.roomStateService.setupSubscriptions(this.roomId());
-    }
-  }
-
-  private handleBeforeUnload(): void {
-    this.roomStateService.setUserLeaving(true);
-    this.userSessionService.handleUserLeaving(this.roomId(), this.roomStateService.participants());
-  }
-
   handleCardClick(card: Card): void {
     if (this.areCardsRevealed() || this.isRevealInProgress()) return;
 
@@ -99,5 +87,17 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   resetCards(): void {
     this.pokerService.resetCards(this.roomId());
+  }
+
+  private async handleRouteChange(providedRoomId: string | null): Promise<void> {
+    await this.roomNavigationService.handleRouteChange(providedRoomId, this.roomId);
+    if (this.roomId()) {
+      this.roomStateService.setupSubscriptions(this.roomId());
+    }
+  }
+
+  private handleBeforeUnload(): void {
+    this.roomStateService.setUserLeaving(true);
+    this.userSessionService.handleUserLeaving(this.roomId(), this.roomStateService.participants());
   }
 }

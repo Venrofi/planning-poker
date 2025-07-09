@@ -69,7 +69,6 @@ export class RoomNavigationService {
   private async navigateToRoomWithCleanup(newRoomId: string): Promise<void> {
     this.roomStateService.setUserLeaving(true);
 
-    // Get current room ID from the router state
     const currentUrl = this.router.url;
     const currentRoomIdMatch = currentUrl.match(/\/room\/([^/]+)/);
     const currentRoomId = currentRoomIdMatch ? currentRoomIdMatch[1] : null;
